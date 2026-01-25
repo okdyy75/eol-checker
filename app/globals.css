@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* @svar-ui/react-gantt のスタイル */
+@import '@svar-ui/react-gantt/style.css';
+
+/* カスタムスタイル */
+.gantt-container {
+  @apply w-full h-96 border border-gray-300 rounded-lg overflow-hidden;
+}
+
+.gantt-task-eol {
+  @apply opacity-60;
+}
+
+.gantt-task-active {
+  @apply opacity-100;
+}
+
+.gantt-task-warning {
+  @apply bg-yellow-400;
+}
+
+.gantt-task-expired {
+  @apply bg-red-400;
+}
+
+.gantt-task-lts {
+  @apply bg-blue-400;
+}
