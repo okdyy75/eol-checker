@@ -42,8 +42,8 @@ export interface EOLCycle {
   cycle: string;          // バージョン番号
   releaseDate: string;    // リリース日（ISO 8601）
   eol: string | boolean;  // EOL日（ISO 8601）またはfalse
-  support?: string;       // サポート終了日（オプション）
-  lts?: boolean;          // LTSかどうか
+  support?: string | boolean;       // サポート終了日（オプション、文字列またはboolean）
+  lts?: boolean | string;          // LTSかどうか（booleanまたはLTS開始日の文字列）
 }
 
 /**

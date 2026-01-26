@@ -19,10 +19,11 @@ EOL Timeline Viewerは、Next.jsで構築された静的Webアプリケーショ
 - **フレームワーク**: Next.js 14+ (App Router)
 - **言語**: TypeScript
 - **UIライブラリ**: React 18+
-- **ガントチャート**: @svar-ui/react-gantt
+- **ガントチャート**: gantt-task-react
 - **スタイリング**: Tailwind CSS
 - **ビルド**: 静的エクスポート（next export）
 - **データソース**: endoflife.date API
+- **テスト**: Jest + React Testing Library
 
 ### アーキテクチャ図
 
@@ -60,16 +61,19 @@ graph TB
 app/
 ├── page.tsx                    # メインページ
 ├── layout.tsx                  # ルートレイアウト
-└── components/
-    ├── ServiceForm.tsx         # サービス入力フォーム
-    ├── TechnologyInput.tsx     # 技術スタック入力
-    ├── EOLGanttChart.tsx       # ガントチャート表示
-    └── ErrorBoundary.tsx       # エラーハンドリング
+└── globals.css                 # グローバルスタイル
+
+components/
+├── ServiceForm.tsx             # サービス入力フォーム
+├── TechnologyInput.tsx         # 技術スタック入力
+├── EOLGanttChart.tsx           # ガントチャート表示
+└── ErrorBoundary.tsx           # エラーハンドリング
 
 lib/
 ├── eol-data.ts                 # EOLデータ取得・管理
 ├── url-state.ts                # URL状態管理
 ├── gantt-adapter.ts            # Ganttデータ変換
+├── validation.ts               # バリデーション
 └── types.ts                    # 型定義
 
 scripts/
@@ -133,9 +137,14 @@ interface EOLGanttChartProps {
 
 **責務:**
 - ガントチャートデータの生成
-- @svar-ui/react-ganttの統合
+- gantt-task-reactの統合
+- サービスごとの独立したチャート表示
+- ライフサイクルステージの色分け表示
+- セグメント表示（期間ごとの色分け）
+- 現在使用中バージョンのマーカー表示
 - ツールチップ表示
 - レスポンシブ対応
+- 凡例表示
 
 ## データモデル
 
@@ -172,7 +181,9 @@ interface EOLProduct {
 
 type EOLDataMap = Record<string, EOLProduct>;
 
-// ガントチャート用データ構造
+// ガントチャート用データ構造（gantt-task-react用）
+type LifecycleStage = 'current' | 'active' | 'maintenance' | 'eol';
+
 interface GanttTask {
   id: string | number;
   text: string;           // 表示名
@@ -181,18 +192,13 @@ interface GanttTask {
   type: "task" | "summary";
   parent?: string | number;
   progress?: number;
-  details?: {
-    version: string;
-    eolDate: string;
-    isEOL: boolean;
-  };
-}
-
-interface GanttLink {
-  id: string | number;
-  source: string | number;
-  target: string | number;
-  type: string;
+  css?: string;           // カスタムCSSクラス
+  segments?: Array<{      // セグメント表示用
+    start: Date;
+    end: Date;
+    stage: LifecycleStage;
+  }>;
+  details?: string;       // JSON文字列化された詳細情報
 }
 
 interface GanttScale {
@@ -201,6 +207,78 @@ interface GanttScale {
   format: string;
 }
 ```
+
+### ライフサイクルステージの詳細
+
+バージョンのライフサイクルステージは、endoflife.date APIから取得した実際の日付フィールド（`lts`、`support`、`eol`）に基づいて判定されます。
+
+#### ステージ定義
+
+| ステージ | 色 | カラーコード | 意味 |
+|---------|-----|------------|------|
+| **current** | 緑 | #22c55e | 最新・推奨バージョン（LTS開始前） |
+| **active** | 青 | #3b82f6 | アクティブサポート中 |
+| **maintenance** | グレー | #94a3b8 | メンテナンスモード（セキュリティ修正のみ） |
+| **eol** | 赤 | #ef4444 | サポート終了済み |
+
+#### 判定ロジック
+
+endoflife.date APIのデータ構造に基づいて判定します。
+
+**判定表:**
+
+| パターン | ltsフィールド | supportフィールド | 期間1 | 期間2 | 期間3 | 具体例 |
+|---------|-------------|-----------------|-------|-------|-------|--------|
+| **1. LTS日付あり** | 文字列（日付） | あり | releaseDate → lts<br/>**current**（緑） | lts → support<br/>**active**（青） | support → eol<br/>**maintenance**（グレー） | Node.js LTS |
+| **2. supportあり** | false | あり | releaseDate → support<br/>**active**（青） | support → eol<br/>**maintenance**（グレー） | - | Rails、Python、PHP、Node.js非LTS |
+| **3. supportなし** | false | なし | releaseDate → eol<br/>**active**（青） | - | - | Ruby、PostgreSQL、Go |
+| **4. EOL済み** | - | - | 全期間<br/>**eol**（赤） | - | - | 過去のバージョン |
+
+**データ例:**
+
+```json
+// パターン1: Node.js 24 LTS
+{
+  "cycle": "24",
+  "releaseDate": "2025-05-06",
+  "lts": "2025-10-28",        // LTS開始日（文字列）
+  "support": "2026-10-20",    // アクティブサポート終了日
+  "eol": "2028-04-30"
+}
+
+// パターン2: Rails 8.1
+{
+  "cycle": "8.1",
+  "releaseDate": "2025-10-22",
+  "support": "2026-10-10",    // サポート終了日
+  "eol": "2027-10-10",
+  "lts": false
+}
+
+// パターン3: Ruby 4.0
+{
+  "cycle": "4.0",
+  "releaseDate": "2025-12-25",
+  "eol": "2029-03-31",
+  "lts": false
+}
+
+// パターン4: Python 3.9（EOL済み）
+{
+  "cycle": "3.9",
+  "releaseDate": "2020-10-05",
+  "eol": "2025-10-31",        // 過去の日付
+  "lts": false
+}
+```
+
+**判定ルール:**
+1. EOL日が現在より過去 → **eol**（全期間）
+2. `lts`フィールドが文字列（日付）の場合 → パターン1
+3. `support`フィールドがある場合 → パターン2
+4. `support`フィールドがない場合 → パターン3
+
+```typescript
 
 ### URL状態エンコーディング
 
@@ -246,8 +324,8 @@ interface URLState {
 
 ### プロパティ3: 無効な入力の拒否
 
-*任意の*無効な入力（空文字列、空白文字のみの文字列など）に対して、システムはエラーメッセージを表示し、データの追加を防止する
-**検証: 要件 1.5, 8.1**
+*任意の*無効な入力（空文字列、空白文字のみの文字列、長すぎる文字列など）に対して、システムはエラーメッセージを表示し、データの追加を防止する
+**検証: 要件 1.5, 7.1**
 
 ### プロパティ4: EOLデータフィールドの保持
 
@@ -261,7 +339,7 @@ interface URLState {
 
 ### プロパティ6: バージョン範囲の完全表示
 
-*任意の*技術とバージョン範囲に対して、現在のバージョンから最新バージョンまでのすべての中間バージョンが表示される
+*任意の*技術とバージョン範囲に対して、現在のバージョン以降のすべてのバージョンが表示される（中間バージョンを含む）
 **検証: 要件 3.3**
 
 ### プロパティ7: バーの期間の正確性
@@ -271,7 +349,7 @@ interface URLState {
 
 ### プロパティ8: EOL状態の視覚的区別
 
-*任意の*バージョンに対して、現在日付より前にEOLを迎えている場合、異なるスタイル（色など）が適用される
+*任意の*バージョンに対して、そのライフサイクルステージ（current、active、maintenance、eol、unstable）に応じて異なるスタイル（色）が適用される
 **検証: 要件 3.6**
 
 ### プロパティ9: URL長の制限遵守
@@ -304,8 +382,10 @@ interface URLState {
 
 **対応:**
 - エラーログの出力
-- ビルドプロセスの失敗
-- リトライロジック（最大3回）
+- リトライロジック（最大3回、1秒間隔）
+- API制限を避けるための待機時間
+- 成功率が低い場合の警告表示
+- 個別の製品取得失敗時は空配列を返してスキップ
 
 #### 3. URL状態デコードエラー
 
@@ -325,9 +405,10 @@ interface URLState {
 - endoflife.dateに存在しない技術名を入力
 
 **対応:**
-- 警告メッセージの表示
+- コンソールに警告メッセージを出力
 - その技術をスキップ
 - 他の技術の表示は継続
+- ユーザーには空のチャートまたは部分的なチャートを表示
 
 ### エラーバウンダリ
 
@@ -347,7 +428,17 @@ class ErrorBoundary extends React.Component {
   
   render() {
     if (this.state.hasError) {
-      return <ErrorFallback error={this.state.error} />;
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h2>エラーが発生しました</h2>
+            <p>ページを再読み込みしてください</p>
+            <button onClick={() => window.location.reload()}>
+              再読み込み
+            </button>
+          </div>
+        </div>
+      );
     }
     return this.props.children;
   }
@@ -406,6 +497,8 @@ class ErrorBoundary extends React.Component {
 - 単一バージョンのGanttタスク変換
 - 複数バージョンのGanttタスク変換
 - EOL済みバージョンのスタイリング
+- ライフサイクルステージの判定
+- セグメント分割の正確性
 
 **プロパティテスト:**
 - プロパティ5: 全サービスと技術の表示
@@ -440,6 +533,9 @@ class ErrorBoundary extends React.Component {
 - サービス追加/削除
 - 技術追加/削除
 - ガントチャートのレンダリング
+- オートコンプリート機能
+- データクリア機能
+- 通知表示機能
 
 ### テスト実行
 
@@ -467,17 +563,25 @@ npm test -- --coverage
 `scripts/fetch-eol-data.ts`でendoflife.date APIからデータを取得します：
 
 ```typescript
-async function fetchEOLData() {
+async function fetchEOLData(limitProducts?: number) {
   // 1. 全製品リストを取得
   const products = await fetch('https://endoflife.date/api/all.json')
     .then(res => res.json());
   
-  // 2. 各製品の詳細を取得
+  // 2. 各製品の詳細を取得（リトライロジック付き）
   const eolData: EOLDataMap = {};
   for (const product of products) {
-    const cycles = await fetch(`https://endoflife.date/api/${product}.json`)
-      .then(res => res.json());
+    const cycles = await fetchWithRetry(
+      `https://endoflife.date/api/${product}.json`,
+      3,  // 最大3回リトライ
+      1000 // 1秒待機
+    );
     eolData[product] = { productName: product, cycles };
+    
+    // API制限を避けるため待機
+    if (processedCount % 10 === 0) {
+      await delay(1000);
+    }
   }
   
   // 3. JSONファイルとして保存
@@ -501,41 +605,49 @@ function convertToGanttData(
   let taskId = 1;
   
   for (const service of services) {
-    // サービスをサマリータスクとして追加
-    const serviceId = taskId++;
-    tasks.push({
-      id: serviceId,
-      text: service.name,
-      start: new Date(),
-      end: new Date(),
-      type: 'summary',
-    });
-    
+    // 技術ごとに処理（サービスごとに独立したチャート）
     for (const tech of service.technologies) {
       const productData = eolData[tech.name];
       if (!productData) continue;
       
-      // 現在バージョンから最新までのサイクルを取得
+      // 現在バージョン以降のサイクルを取得
       const relevantCycles = getRelevantCycles(
         productData.cycles,
         tech.currentVersion
       );
       
       for (const cycle of relevantCycles) {
-        const isEOL = isVersionEOL(cycle.eol);
+        const isCurrentVersion = compareVersions(cycle.cycle, tech.currentVersion) === 0;
+        
+        // ライフサイクルステージを計算
+        const lifecycleStage = getLifecycleStage(cycle, startDate, endDate);
+        
+        // 期間をセグメントに分割
+        const segments = calculateStages(startDate, endDate, cycle.lts || false);
+        
         tasks.push({
           id: taskId++,
-          text: `${tech.name} ${cycle.cycle}`,
+          text: `${tech.name} ${cycle.cycle}${isCurrentVersion ? ' ★' : ''}`,
           start: new Date(cycle.releaseDate),
           end: new Date(cycle.eol as string),
           type: 'task',
-          parent: serviceId,
-          progress: isEOL ? 100 : 0,
-          details: {
+          progress: 0,
+          css: `stage-${lifecycleStage}${isCurrentVersion ? ' current-version' : ''}`,
+          segments: segments.map(seg => ({
+            start: seg.start,
+            end: seg.end,
+            stage: seg.stage,
+          })),
+          details: JSON.stringify({
             version: cycle.cycle,
-            eolDate: cycle.eol as string,
-            isEOL,
-          },
+            eolDate: cycle.eol,
+            releaseDate: cycle.releaseDate,
+            stage: lifecycleStage,
+            lts: cycle.lts || false,
+            techName: tech.name,
+            serviceName: service.name,
+            isCurrentVersion,
+          }),
         });
       }
     }
@@ -548,6 +660,127 @@ function convertToGanttData(
   
   return { tasks, scales };
 }
+
+// ライフサイクルステージを判定
+function getLifecycleStage(
+  cycle: EOLCycle,
+  startDate: Date,
+  endDate: Date
+): 'current' | 'active' | 'maintenance' | 'eol' {
+  const now = new Date();
+  
+  // EOL済み（サポート終了）
+  if (endDate < now) return 'eol';
+  
+  // パターン1: LTSバージョン（ltsフィールドが日付文字列）
+  if (cycle.lts && typeof cycle.lts === 'string') {
+    const ltsDate = new Date(cycle.lts);
+    if (cycle.support && typeof cycle.support === 'string') {
+      const supportDate = new Date(cycle.support);
+      // 現在日時がどの期間にあるかで判定
+      if (now < ltsDate) return 'current';
+      if (now < supportDate) return 'active';
+      return 'maintenance';
+    }
+    // supportがない場合
+    if (now < ltsDate) return 'current';
+    return 'active';
+  }
+  
+  // パターン2: 非LTSバージョンでsupportあり
+  if (cycle.support && typeof cycle.support === 'string') {
+    const supportDate = new Date(cycle.support);
+    if (now < supportDate) return 'active';
+    return 'maintenance';
+  }
+  
+  // パターン3: supportフィールドがない場合
+  return 'active';
+}
+
+// 期間をステージごとに分割
+function calculateStages(
+  cycle: EOLCycle,
+  startDate: Date,
+  endDate: Date
+): Array<{ start: Date; end: Date; stage: LifecycleStage }> {
+  const now = new Date();
+  
+  // EOL済みの場合は全期間を赤色で表示
+  if (endDate < now) {
+    return [{
+      start: startDate,
+      end: endDate,
+      stage: 'eol'
+    }];
+  }
+  
+  // パターン1: LTSバージョン（ltsフィールドが日付文字列）
+  if (cycle.lts && typeof cycle.lts === 'string') {
+    const ltsDate = new Date(cycle.lts);
+    const segments: Array<{ start: Date; end: Date; stage: LifecycleStage }> = [];
+    
+    // releaseDate → lts: current（緑）
+    segments.push({
+      start: startDate,
+      end: ltsDate,
+      stage: 'current'
+    });
+    
+    // lts → support: active（青）
+    if (cycle.support && typeof cycle.support === 'string') {
+      const supportDate = new Date(cycle.support);
+      segments.push({
+        start: ltsDate,
+        end: supportDate,
+        stage: 'active'
+      });
+      
+      // support → eol: maintenance（グレー）
+      segments.push({
+        start: supportDate,
+        end: endDate,
+        stage: 'maintenance'
+      });
+    } else {
+      // supportがない場合は、lts → eol を active
+      segments.push({
+        start: ltsDate,
+        end: endDate,
+        stage: 'active'
+      });
+    }
+    
+    return segments;
+  }
+  
+  // パターン2: 非LTSバージョンでsupportあり
+  if (cycle.support && typeof cycle.support === 'string') {
+    const supportDate = new Date(cycle.support);
+    
+    return [
+      // releaseDate → support: active（青）
+      {
+        start: startDate,
+        end: supportDate,
+        stage: 'active'
+      },
+      // support → eol: maintenance（グレー）
+      {
+        start: supportDate,
+        end: endDate,
+        stage: 'maintenance'
+      }
+    ];
+  }
+  
+  // パターン3: supportフィールドがない場合は、全期間をactiveとして表示
+  return [{
+    start: startDate,
+    end: endDate,
+    stage: 'active'
+  }];
+}
 ```
 
 ### レスポンシブデザイン
@@ -555,17 +788,28 @@ function convertToGanttData(
 Tailwind CSSのブレークポイントを使用：
 
 ```typescript
-// モバイル: < 640px
-// タブレット: 640px - 1024px
-// デスクトップ: > 1024px
+// モバイル: < 640px (sm)
+// タブレット: 640px - 1024px (md, lg)
+// デスクトップ: > 1024px (xl)
 
 <div className="container mx-auto px-4">
-  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-    <div className="order-2 lg:order-1">
-      {/* フォーム */}
+  <div className="flex flex-col gap-4 sm:gap-6 lg:gap-8">
+    {/* ヘッダー */}
+    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
+      <h1 className="text-xl sm:text-2xl font-bold">EOL Timeline Viewer</h1>
+      <button className="w-full sm:w-auto">データクリア</button>
     </div>
-    <div className="order-1 lg:order-2 overflow-x-auto">
-      {/* ガントチャート */}
+    
+    {/* フォーム */}
+    <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+      <ServiceForm services={services} onServicesChange={handleServicesChange} />
+    </div>
+    
+    {/* ガントチャート */}
+    <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+      <div className="overflow-x-auto">
+        <EOLGanttChart services={services} eolData={eolData} />
+      </div>
     </div>
   </div>
 </div>
@@ -573,10 +817,10 @@ Tailwind CSSのブレークポイントを使用：
 
 ### パフォーマンス最適化
 
-1. **メモ化**: React.memoとuseMemoを使用して不要な再レンダリングを防止
-2. **遅延読み込み**: ガントチャートコンポーネントの動的インポート
-3. **データキャッシング**: EOLデータは静的ファイルとして事前生成
-4. **デバウンス**: URL更新とローカルストレージ保存をデバウンス
+1. **メモ化**: React.memo、useMemo、useCallbackを使用して不要な再レンダリングを防止
+2. **データキャッシング**: EOLデータは静的ファイルとして事前生成し、クライアント側でキャッシュ
+3. **デバウンス**: URL更新をデバウンスして過度な履歴エントリを防止
+4. **効率的なデータ構造**: サービスごとに独立したガントチャートを生成し、大規模データでもパフォーマンスを維持
 
 ## デプロイメント
 
@@ -585,12 +829,14 @@ Tailwind CSSのブレークポイントを使用：
 ```bash
 # 1. EOLデータを取得
 npm run fetch-eol-data
+# または環境変数でテストモード
+FETCH_LIMIT=20 npm run fetch-eol-data
 
 # 2. Next.jsアプリをビルド
 npm run build
 
-# 3. 静的ファイルをエクスポート
-npm run export
+# 3. 静的ファイルをエクスポート（next.config.jsでoutput: 'export'設定済み）
+# ビルドコマンドに含まれる
 ```
 
 ### next.config.js設定

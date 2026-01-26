@@ -15,6 +15,15 @@ EOL Timeline Viewerは、開発中のサービスで使用している言語や�
 - **endoflife.date**: EOL情報を提供する外部APIサービス
 - **Gantt_Chart**: 時系列に沿ってバーで情報を表示するチャート形式
 - **URL_State**: URLパラメータに保存されたアプリケーションの状態
+- **Static_Site**: サーバー側の処理を必要とせず、HTMLやJavaScriptなどの静的ファイルのみで動作するWebサイト
+- **Build_Time**: アプリケーションのビルドプロセス中に実行される処理のタイミング
+- **Lifecycle_Stage**: バージョンのライフサイクルステージ（current、active、maintenance、eol）
+  - **current**: 最新・推奨バージョン（緑色）
+  - **active**: アクティブサポート中（青色）
+  - **maintenance**: メンテナンスモード（グレー）
+  - **eol**: サポート終了（赤色）
+  - 詳細な判定条件は設計書を参照
+- **Segment**: ガントチャート上でバージョンの期間を複数の色で分割表示する機能
 
 ## 機能要件
 
@@ -29,6 +38,9 @@ EOL Timeline Viewerは、開発中のサービスで使用している言語や�
 3. WHEN ユーザーがTechnologyを追加する場合、THE System SHALL Technology名と現在使用中のVersionを入力できるようにする
 4. THE System SHALL 入力されたすべてのデータをURL_Stateとして保存する
 5. WHEN 無効なデータ（空のサービス名や空のTechnology名）が入力された場合、THE System SHALL エラーメッセージを表示し、データの追加を防止する
+6. THE System SHALL Technology名の入力時にオートコンプリート機能を提供する
+7. THE System SHALL サービスと技術の追加・削除機能を提供する
+8. THE System SHALL すべてのデータをクリアする機能を提供する
 
 ### 要件2: endoflife.dateからのデータ取得
 
@@ -38,9 +50,11 @@ EOL Timeline Viewerは、開発中のサービスで使用している言語や�
 
 1. WHEN アプリケーションがビルドされる場合、THE System SHALL endoflife.date APIから利用可能なすべてのTechnology情報を取得する
 2. THE System SHALL 各Technologyについて、すべてのVersionとそれぞれのEOL_Dateを取得する
-3. IF APIリクエストが失敗した場合、THEN THE System SHALL エラーをログに記録し、ビルドを失敗させる
-4. THE System SHALL 取得したデータを静的ファイルとして保存し、クライアント側で利用できるようにする
-5. THE System SHALL 取得したデータにリリース日、サポート終了日、拡張サポート終了日が含まれる場合、それらを保持する
+3. IF APIリクエストが失敗した場合、THEN THE System SHALL エラーをログに記録し、リトライロジックを実行する（最大3回）
+4. THE System SHALL 取得したデータを静的ファイル（public/data/eol-data.json）として保存し、クライアント側で利用できるようにする
+5. THE System SHALL 取得したデータにリリース日、サポート終了日、拡張サポート終了日、LTS情報が含まれる場合、それらを保持する
+6. THE System SHALL データ取得時にAPI制限を避けるため適切な待機時間を設ける
+7. THE System SHALL 取得したデータをキャッシュし、複数回の読み込みを防止する
 
 ### 要件3: ガントチャートによるタイムライン表示
 
@@ -53,8 +67,11 @@ EOL Timeline Viewerは、開発中のサービスで使用している言語や�
 3. WHEN Technologyに現在のVersionが指定されている場合、THE System SHALL 現在のVersionから最新Versionまでのすべてのバージョンを表示する
 4. THE System SHALL 各Versionのバーを、リリース日からEOL_Dateまでの期間として表示する
 5. THE System SHALL 現在日付を示す垂直線をチャート上に表示する
-6. THE System SHALL すでにEOLを迎えたVersionを視覚的に区別できるようにする（例：異なる色で表示）
-7. WHEN ユーザーがチャート上のバーにホバーした場合、THE System SHALL Version番号、リリース日、EOL_Dateを含む詳細情報を表示する
+6. THE System SHALL バージョンのライフサイクルステージ（current、active、maintenance、eol）を視覚的に区別できるようにする（異なる色で表示）
+7. THE System SHALL 現在使用中のバージョンに特別なマーカー（★）を表示する
+8. WHEN ユーザーがチャート上のバーにホバーした場合、THE System SHALL Version番号、リリース日、EOL_Dateを含む詳細情報を表示する
+9. THE System SHALL サービスごとに独立したガントチャートを表示する
+10. THE System SHALL バージョンのライフサイクルステージを期間ごとに色分けして表示する（セグメント表示）
 
 ### 要件4: URL共有機能
 
@@ -65,8 +82,10 @@ EOL Timeline Viewerは、開発中のサービスで使用している言語や�
 1. THE System SHALL すべての入力データ（Service、Technology、Version）をURLパラメータとしてエンコードする
 2. WHEN ユーザーがデータを入力または変更した場合、THE System SHALL URLを自動的に更新する
 3. WHEN ユーザーがURL_Stateを含むURLにアクセスした場合、THE System SHALL URLからデータをデコードし、アプリケーションの状態を復元する
-4. THE System SHALL URLが最大長制限を超えないように、データを効率的にエンコードする
+4. THE System SHALL URLが最大長制限（2048文字）を超えないように、データを効率的にエンコードする
 5. IF URLのデコードに失敗した場合、THEN THE System SHALL エラーメッセージを表示し、空の状態から開始する
+6. THE System SHALL データが空の場合、URLパラメータをクリアする機能を提供する
+7. THE System SHALL URL長制限を超える場合、ユーザーに通知する
 
 ### 要件5: レスポンシブデザイン
 
@@ -78,6 +97,8 @@ EOL Timeline Viewerは、開発中のサービスで使用している言語や�
 2. WHEN 画面幅が狭い場合、THE System SHALL Gantt_Chartを水平スクロール可能にする
 3. THE System SHALL タッチデバイスでのスクロールとズーム操作をサポートする
 4. WHEN モバイルデバイスで表示される場合、THE System SHALL 入力フォームを縦方向に最適化して表示する
+5. THE System SHALL Tailwind CSSのブレークポイント（sm、md、lg）を使用してレスポンシブレイアウトを実装する
+6. THE System SHALL モバイルデバイスでボタンとフォーム要素を適切なサイズで表示する
 
 ### 要件6: 静的サイト生成
 
@@ -89,6 +110,7 @@ EOL Timeline Viewerは、開発中のサービスで使用している言語や�
 2. THE System SHALL ビルド時にすべての必要なデータを取得し、静的ファイルに含める
 3. THE System SHALL クライアント側でのみ動作し、サーバー側の処理を必要としない
 4. THE System SHALL 標準的な静的ホスティングサービス（Netlify、Vercel、GitHub Pagesなど）にデプロイ可能である
+5. THE System SHALL ビルドスクリプトでEOLデータの取得を自動化する
 
 ### 要件7: エラーハンドリング
 
@@ -100,3 +122,16 @@ EOL Timeline Viewerは、開発中のサービスで使用している言語や�
 2. WHEN 指定されたTechnologyがendoflife.dateで見つからない場合、THE System SHALL ユーザーに通知し、そのTechnologyをスキップする
 3. WHEN ネットワークエラーやデータ読み込みエラーが発生した場合、THE System SHALL ユーザーフレンドリーなエラーメッセージを表示する
 4. THE System SHALL エラー発生時もアプリケーションがクラッシュせず、部分的に機能し続けるようにする
+5. THE System SHALL アプリケーション初期化時のエラーを適切にハンドリングし、再読み込みオプションを提供する
+6. THE System SHALL URL長制限を超える場合、ユーザーに通知メッセージを表示する
+
+### 要件8: データ検証とセキュリティ
+
+**ユーザーストーリー:** ユーザーとして、入力したデータが適切に検証され、安全に処理されることを期待する。そうすることで、予期しない動作やセキュリティ問題を防げる。
+
+#### 受入基準
+
+1. THE System SHALL すべてのユーザー入力に対してバリデーションを実行し、無効なデータの処理を防止する
+2. THE System SHALL URLパラメータのデコード時にスキーマバリデーションを実行する
+3. THE System SHALL XSS攻撃を防ぐため、すべてのユーザー入力を適切にエスケープする
+4. THE System SHALL 予期しないエラーが発生した場合、Error Boundaryでキャッチし、適切なフォールバックUIを表示する

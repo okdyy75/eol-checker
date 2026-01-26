@@ -103,11 +103,10 @@ describe('EOLGanttChart', () => {
   test('凡例が正しく表示される', () => {
     render(<EOLGanttChart services={mockServices} eolData={mockEOLData} />);
     
-    expect(screen.getByText('current')).toBeInTheDocument();
-    expect(screen.getByText('active')).toBeInTheDocument();
-    expect(screen.getByText('maintenance')).toBeInTheDocument();
-    expect(screen.getByText('unstable')).toBeInTheDocument();
-    expect(screen.getByText('サポート終了')).toBeInTheDocument();
+    expect(screen.getByText(/最新・推奨/)).toBeInTheDocument();
+    expect(screen.getByText(/アクティブサポート/)).toBeInTheDocument();
+    expect(screen.getByText(/メンテナンス/)).toBeInTheDocument();
+    expect(screen.getByText(/サポート終了/)).toBeInTheDocument();
   });
 
   test('EOLデータが存在しない場合、適切なメッセージを表示する', () => {

@@ -1,6 +1,10 @@
 import { Service, EOLDataMap, GanttScale, EOLCycle } from './types';
 
-// gantt-task-react用の型定義
+// ライフサイクルステージの定義
+// - current: 最新・推奨バージョン（緑 #22c55e）
+// - active: アクティブサポート中（青 #3b82f6）
+// - maintenance: メンテナンスモード（グレー #94a3b8）
+// - eol: サポート終了（赤 #ef4444）
 type LifecycleStage = 'current' | 'active' | 'maintenance' | 'eol';
 
 interface GanttTask {
@@ -81,7 +85,7 @@ export function convertToGanttData(
         const isCurrentVersion = compareVersions(cycle.cycle, tech.currentVersion) === 0;
         
         // 期間を分割してセグメントを作成
-        const stages = calculateStages(startDate, endDate, cycle.lts || false);
+        const stages = calculateStages(cycle, startDate, endDate);
         const segments = stages.map(stage => ({
           start: stage.start,
           end: stage.end,
@@ -123,16 +127,32 @@ export function convertToGanttData(
 
 /**
  * バージョンの期間をステージごとに分割する関数
+ * 
+ * セグメント分割ルール（endoflife.date APIのデータ構造に基づく）:
+ * 
+ * パターン1: LTS日付あり（例: Node.js LTS）
+ *   - releaseDate → lts: current（緑）
+ *   - lts → support: active（青）
+ *   - support → eol: maintenance（グレー）
+ * 
+ * パターン2: supportあり、LTSなし（例: Rails、Python、PHP）
+ *   - releaseDate → support: active（青）
+ *   - support → eol: maintenance（グレー）
+ * 
+ * パターン3: supportなし（例: Ruby、PostgreSQL、Go）
+ *   - releaseDate → eol: active（青）全期間
+ * 
+ * パターン4: EOL済み
+ *   - 全期間: eol（赤）
  */
 function calculateStages(
+  cycle: EOLCycle,
   startDate: Date,
-  endDate: Date,
-  isLTS: boolean
+  endDate: Date
 ): Array<{ start: Date; end: Date; stage: 'current' | 'active' | 'maintenance' | 'eol' }> {
   const now = new Date();
-  const stages: Array<{ start: Date; end: Date; stage: 'current' | 'active' | 'maintenance' | 'eol' }> = [];
   
-  // EOL済みの場合
+  // EOL済みの場合は全期間を赤色で表示
   if (endDate < now) {
     return [{
       start: startDate,
@@ -141,142 +161,122 @@ function calculateStages(
     }];
   }
   
-  const totalDuration = endDate.getTime() - startDate.getTime();
-  
-  if (isLTS) {
-    // LTSの場合: 50%までactive、50%以降maintenance
-    const activeEnd = new Date(startDate.getTime() + totalDuration * 0.5);
+  // パターン1: LTSバージョン（ltsフィールドが日付文字列）
+  if (cycle.lts && typeof cycle.lts === 'string') {
+    const ltsDate = new Date(cycle.lts);
+    const segments: Array<{ start: Date; end: Date; stage: 'current' | 'active' | 'maintenance' | 'eol' }> = [];
     
-    if (now < activeEnd) {
-      // 現在activeフェーズ
-      stages.push({
-        start: startDate,
-        end: activeEnd,
+    // releaseDate → lts: current（緑）
+    segments.push({
+      start: startDate,
+      end: ltsDate,
+      stage: 'current'
+    });
+    
+    // lts → support: active（青）
+    if (cycle.support && typeof cycle.support === 'string') {
+      const supportDate = new Date(cycle.support);
+      segments.push({
+        start: ltsDate,
+        end: supportDate,
         stage: 'active'
       });
-      stages.push({
-        start: activeEnd,
+      
+      // support → eol: maintenance（グレー）
+      segments.push({
+        start: supportDate,
         end: endDate,
         stage: 'maintenance'
       });
     } else {
-      // 現在maintenanceフェーズ
-      stages.push({
-        start: startDate,
-        end: activeEnd,
+      // supportがない場合は、lts → eol を active
+      segments.push({
+        start: ltsDate,
+        end: endDate,
         stage: 'active'
       });
-      stages.push({
-        start: activeEnd,
-        end: endDate,
-        stage: 'maintenance'
-      });
     }
-  } else {
-    // 非LTSの場合: 75%までcurrent、25%までactive、残りmaintenance
-    const currentEnd = new Date(startDate.getTime() + totalDuration * 0.75);
-    const activeEnd = new Date(startDate.getTime() + totalDuration * 0.9);
     
-    if (now < currentEnd) {
-      // 現在currentフェーズ
-      stages.push({
-        start: startDate,
-        end: currentEnd,
-        stage: 'current'
-      });
-      stages.push({
-        start: currentEnd,
-        end: activeEnd,
-        stage: 'active'
-      });
-      stages.push({
-        start: activeEnd,
-        end: endDate,
-        stage: 'maintenance'
-      });
-    } else if (now < activeEnd) {
-      // 現在activeフェーズ
-      stages.push({
-        start: startDate,
-        end: currentEnd,
-        stage: 'current'
-      });
-      stages.push({
-        start: currentEnd,
-        end: activeEnd,
-        stage: 'active'
-      });
-      stages.push({
-        start: activeEnd,
-        end: endDate,
-        stage: 'maintenance'
-      });
-    } else {
-      // 現在maintenanceフェーズ
-      stages.push({
-        start: startDate,
-        end: currentEnd,
-        stage: 'current'
-      });
-      stages.push({
-        start: currentEnd,
-        end: activeEnd,
-        stage: 'active'
-      });
-      stages.push({
-        start: activeEnd,
-        end: endDate,
-        stage: 'maintenance'
-      });
-    }
+    return segments;
   }
   
-  return stages;
+  // パターン2: 非LTSバージョンでsupportあり
+  if (cycle.support && typeof cycle.support === 'string') {
+    const supportDate = new Date(cycle.support);
+    
+    return [
+      // releaseDate → support: active（青）
+      {
+        start: startDate,
+        end: supportDate,
+        stage: 'active'
+      },
+      // support → eol: maintenance（グレー）
+      {
+        start: supportDate,
+        end: endDate,
+        stage: 'maintenance'
+      }
+    ];
+  }
+  
+  // パターン3: supportフィールドがない場合は、全期間をactiveとして表示
+  return [{
+    start: startDate,
+    end: endDate,
+    stage: 'active'
+  }];
 }
 
 /**
  * ライフサイクルステージを判定する関数
+ * 
+ * 判定ロジック（endoflife.date APIのデータ構造に基づく）:
+ * 1. EOL日が過去 → eol
+ * 2. ltsフィールドが文字列（日付）の場合:
+ *    - 現在 < lts: current
+ *    - lts ≤ 現在 < support: active
+ *    - support ≤ 現在: maintenance
+ * 3. supportフィールドがある場合:
+ *    - 現在 < support: active
+ *    - support ≤ 現在: maintenance
+ * 4. supportフィールドがない場合:
+ *    - active（全期間）
  */
 function getLifecycleStage(
   cycle: EOLCycle,
   startDate: Date,
   endDate: Date
-): 'current' | 'active' | 'maintenance' | 'eol' | 'unstable' {
+): 'current' | 'active' | 'maintenance' | 'eol' {
   const now = new Date();
   
-  // EOL済み
-  if (endDate < now) {
-    return 'eol';
-  }
+  // 1. EOL済み（サポート終了）
+  if (endDate < now) return 'eol';
   
-  // LTSの場合
-  if (cycle.lts) {
-    // サポート期間の残り時間を計算
-    const totalDuration = endDate.getTime() - startDate.getTime();
-    const remainingDuration = endDate.getTime() - now.getTime();
-    const remainingRatio = remainingDuration / totalDuration;
-    
-    // 残り期間が50%以上ならactive、それ以下ならmaintenance
-    return remainingRatio > 0.5 ? 'active' : 'maintenance';
-  }
-  
-  // 非LTSの場合
-  const totalDuration = endDate.getTime() - startDate.getTime();
-  const remainingDuration = endDate.getTime() - now.getTime();
-  const remainingRatio = remainingDuration / totalDuration;
-  
-  // 残り期間が75%以上ならcurrent
-  if (remainingRatio > 0.75) {
-    return 'current';
-  }
-  
-  // 残り期間が25%以上ならactive
-  if (remainingRatio > 0.25) {
+  // 2. LTSバージョン（ltsフィールドが日付文字列）
+  if (cycle.lts && typeof cycle.lts === 'string') {
+    const ltsDate = new Date(cycle.lts);
+    if (cycle.support && typeof cycle.support === 'string') {
+      const supportDate = new Date(cycle.support);
+      // 現在日時がどの期間にあるかで判定
+      if (now < ltsDate) return 'current';
+      if (now < supportDate) return 'active';
+      return 'maintenance';
+    }
+    // supportがない場合
+    if (now < ltsDate) return 'current';
     return 'active';
   }
   
-  // それ以外はmaintenance
-  return 'maintenance';
+  // 3. 非LTSバージョンでsupportあり
+  if (cycle.support && typeof cycle.support === 'string') {
+    const supportDate = new Date(cycle.support);
+    if (now < supportDate) return 'active';
+    return 'maintenance';
+  }
+  
+  // 4. supportフィールドがない場合
+  return 'active';
 }
 
 /**

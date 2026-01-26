@@ -6,7 +6,12 @@ import 'gantt-task-react/dist/index.css';
 import { Service, EOLDataMap } from '../lib/types';
 import { convertToGanttData } from '../lib/gantt-adapter';
 
-type SegmentStage = 'current' | 'active' | 'maintenance' | 'eol' | 'unstable';
+// ライフサイクルステージの型定義
+// - current: 最新・推奨バージョン（緑 #22c55e）
+// - active: アクティブサポート中（青 #3b82f6）
+// - maintenance: メンテナンスモード（グレー #94a3b8）
+// - eol: サポート終了（赤 #ef4444）
+type SegmentStage = 'current' | 'active' | 'maintenance' | 'eol';
 type SegmentWithStage = {
   start: Date;
   end: Date;
@@ -85,14 +90,14 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
     );
   }, []);
 
-  // ステージに応じた色を取得する関数をuseCallbackで安定化
+  // ステージに応じた色を取得する関数
+  // current: 緑 #22c55e, active: 青 #3b82f6, maintenance: グレー #94a3b8, eol: 赤 #ef4444
   const getStageColor = useCallback((stage: string): string => {
     const colors: Record<string, string> = {
-      current: '#22c55e',
-      active: '#3b82f6',
-      maintenance: '#94a3b8',
-      unstable: '#f97316',
-      eol: '#ef4444'
+      current: '#22c55e',      // 最新・推奨
+      active: '#3b82f6',       // アクティブサポート
+      maintenance: '#94a3b8',  // メンテナンス
+      eol: '#ef4444'           // サポート終了
     };
     return colors[stage] || '#3b82f6';
   }, []);
@@ -177,23 +182,19 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
         <div className="legend">
           <div className="legend-item">
             <div className="legend-color current"></div>
-            <span>current</span>
+            <span>最新・推奨 (Current)</span>
           </div>
           <div className="legend-item">
             <div className="legend-color active"></div>
-            <span>active</span>
+            <span>アクティブサポート (Active)</span>
           </div>
           <div className="legend-item">
             <div className="legend-color maintenance"></div>
-            <span>maintenance</span>
-          </div>
-          <div className="legend-item">
-            <div className="legend-color unstable"></div>
-            <span>unstable</span>
+            <span>メンテナンス (Maintenance)</span>
           </div>
           <div className="legend-item">
             <div className="legend-color eol"></div>
-            <span>サポート終了</span>
+            <span>サポート終了 (EOL)</span>
           </div>
         </div>
       </div>
@@ -333,10 +334,6 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
 
         .legend-color.maintenance {
           background-color: #94a3b8;
-        }
-
-        .legend-color.unstable {
-          background-color: #f97316;
         }
 
         .legend-color.eol {
