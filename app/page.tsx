@@ -9,15 +9,8 @@ import { loadEOLData } from '@/lib/eol-data';
 import { 
   getURLStateFromCurrentURL, 
   setURLState, 
-  clearURLState, 
-  createEmptyURLState,
-  isEmptyURLState 
+  clearURLState
 } from '@/lib/url-state';
-import { 
-  loadDataWithPriority, 
-  saveDataWithNotification, 
-  clearLocalStorage 
-} from '@/lib/storage';
 
 /**
  * メインページコンポーネント
@@ -25,10 +18,6 @@ import {
  * 実装する要件:
  * - 1.4: すべての入力データをURL_Stateとして保存する
  * - 4.2: ユーザーがデータを入力または変更した場合、URLを自動的に更新する
- * - 6.1: 入力されたデータをブラウザのローカルストレージに保存する
- * - 6.2: ユーザーがアプリケーションを再度開いた場合、ローカルストレージからデータを読み込む
- * - 6.3: URL_Stateが存在する場合、URL_Stateをローカルストレージよりも優先する
- * - 6.4: ユーザーがデータをクリアできる機能を提供する
  */
 export default function Home() {
   // 状態管理
@@ -60,11 +49,8 @@ export default function Home() {
         let initialServices: Service[] = [];
 
         if (urlStateResult.success && urlStateResult.data) {
-          // URL状態が存在する場合はそれを使用（要件 6.3）
+          // URL状態が存在する場合はそれを使用
           initialServices = urlStateResult.data.services;
-        } else {
-          // URL状態がない場合はローカルストレージから読み込み（要件 6.2）
-          initialServices = loadDataWithPriority();
         }
 
         setServices(initialServices);
@@ -95,22 +81,16 @@ export default function Home() {
       if (!urlResult.success) {
         console.warn('URL状態の更新に失敗しました:', urlResult.error);
         if (urlResult.error?.type === 'URL_TOO_LONG') {
-          showNotification('データが大きすぎてURLに保存できません。ローカルストレージのみに保存されます。');
+          showNotification('データが大きすぎてURLに保存できません。');
         }
       }
     } else {
       // サービスが空の場合はURL状態をクリア
       clearURLState();
     }
-
-    // ローカルストレージに保存（要件 6.1）
-    const storageResult = saveDataWithNotification(newServices);
-    if (!storageResult.success && storageResult.message) {
-      showNotification(storageResult.message);
-    }
   }, [showNotification]);
 
-  // データクリア機能（要件 6.4）
+  // データクリア機能
   const handleClearData = useCallback(() => {
     if (window.confirm('すべてのデータをクリアしますか？この操作は元に戻せません。')) {
       // 状態をクリア
@@ -119,13 +99,7 @@ export default function Home() {
       // URL状態をクリア
       clearURLState();
       
-      // ローカルストレージをクリア
-      const clearResult = clearLocalStorage();
-      if (clearResult.success) {
-        showNotification('すべてのデータがクリアされました。');
-      } else {
-        showNotification('データのクリアに失敗しました。');
-      }
+      showNotification('すべてのデータがクリアされました。');
     }
   }, [showNotification]);
 
