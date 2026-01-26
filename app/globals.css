@@ -2,9 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* @svar-ui/react-gantt のスタイル */
-@import '@svar-ui/react-gantt/style.css';
-
 /* カスタムスタイル */
 .gantt-container {
   @apply w-full h-96 border border-gray-300 rounded-lg overflow-hidden;
@@ -28,4 +25,22 @@
 
 .gantt-task-lts {
   @apply bg-blue-400;
+}
+
+/* 現在日付の縦線を強調表示 */
+.gantt_today {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  border-left: 2px solid #ef4444 !important;
+  z-index: 1;
+}
+
+/* サービスタイトルのスタイル */
+.service-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #f3f4f6;
+  border-left: 4px solid #3b82f6;
 }

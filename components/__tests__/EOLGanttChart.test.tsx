@@ -4,11 +4,22 @@ import '@testing-library/jest-dom';
 import EOLGanttChart from '../EOLGanttChart';
 import { Service, EOLDataMap } from '../../lib/types';
 
-// @svar-ui/react-ganttのモック（__mocks__ディレクトリから自動的に読み込まれる）
-jest.mock('@svar-ui/react-gantt');
+// gantt-task-reactのモック
+jest.mock('gantt-task-react', () => ({
+  Gantt: ({ tasks }: { tasks: any[] }) => (
+    <div data-testid="gantt-chart" className="mock-gantt">
+      <div data-testid="gantt-tasks">
+        {JSON.stringify(tasks)}
+      </div>
+    </div>
+  ),
+  ViewMode: {
+    Month: 'Month',
+  },
+}));
 
 // CSSインポートのモック
-jest.mock('@svar-ui/react-gantt/all.css', () => ({}));
+jest.mock('gantt-task-react/dist/index.css', () => ({}));
 
 describe('EOLGanttChart', () => {
   const mockEOLData: EOLDataMap = {
@@ -86,13 +97,16 @@ describe('EOLGanttChart', () => {
     
     expect(screen.getByText('EOL タイムライン')).toBeInTheDocument();
     expect(screen.getByTestId('gantt-chart')).toBeInTheDocument();
-    expect(screen.getByTestId('tooltip-wrapper')).toBeInTheDocument();
+    // ツールチップはホバー時に表示されるため、初期状態では存在しない
   });
 
   test('凡例が正しく表示される', () => {
     render(<EOLGanttChart services={mockServices} eolData={mockEOLData} />);
     
-    expect(screen.getByText('サポート中')).toBeInTheDocument();
+    expect(screen.getByText('current')).toBeInTheDocument();
+    expect(screen.getByText('active')).toBeInTheDocument();
+    expect(screen.getByText('maintenance')).toBeInTheDocument();
+    expect(screen.getByText('unstable')).toBeInTheDocument();
     expect(screen.getByText('サポート終了')).toBeInTheDocument();
   });
 

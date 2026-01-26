@@ -208,10 +208,11 @@ export default function Home() {
 
         {/* メインコンテンツ */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
+          <div className="flex flex-col gap-4 sm:gap-6 lg:gap-8">
             {/* サービスフォーム */}
-            <div className="order-2 xl:order-1">
+            <div>
               <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">サービスと技術スタック</h2>
                 <ServiceForm 
                   services={services} 
                   onServicesChange={handleServicesChange} 
@@ -220,7 +221,7 @@ export default function Home() {
             </div>
 
             {/* ガントチャート */}
-            <div className="order-1 xl:order-2">
+            <div>
               <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
                 <EOLGanttChart 
                   services={services} 

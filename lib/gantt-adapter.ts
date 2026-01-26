@@ -1,31 +1,42 @@
 import { Service, EOLDataMap, GanttScale, EOLCycle } from './types';
-import { ITask } from '@svar-ui/react-gantt';
+
+// gantt-task-react用の型定義
+type LifecycleStage = 'current' | 'active' | 'maintenance' | 'eol';
+
+interface GanttTask {
+  id: string | number;
+  text: string;
+  start: Date;
+  end: Date;
+  type: 'task' | 'summary';
+  parent?: string | number;
+  progress?: number;
+  css?: string;
+  segments?: Array<{
+    start: Date;
+    end: Date;
+    stage: LifecycleStage;
+  }>;
+  details?: string;
+}
 
 /**
  * ServiceデータをGanttTask配列に変換する関数
  * 要件 3.1, 3.2, 3.3, 3.4, 3.6 を満たす実装
+ * 
+ * サービスごとに独立したガントチャートデータを生成
+ * 一つのバージョンを期間ごとに分割して色分け
  */
 export function convertToGanttData(
   services: Service[],
   eolData: EOLDataMap
-): { tasks: ITask[]; scales: GanttScale[] } {
-  const tasks: ITask[] = [];
+): { tasks: GanttTask[]; scales: GanttScale[] } {
+  const tasks: GanttTask[] = [];
   let taskId = 1;
   
-  // 要件 3.1: 入力されたすべてのServiceとTechnologyをGantt_Chartとして表示する
+  // サービスごとに処理
   for (const service of services) {
-    // サービスをサマリータスクとして追加
-    const serviceId = taskId++;
-    
-    // サマリータスクの期間を計算（子タスクの最小開始日〜最大終了日）
-    let minStart = new Date();
-    let maxEnd = new Date();
-    let hasValidTasks = false;
-    
-    // 一時的に子タスクを収集して期間を計算
-    const tempTasks: ITask[] = [];
-    
-    // 要件 3.2: Serviceが複数のTechnologyを持つ場合、各Technologyを個別の行として表示する
+    // 技術ごとに処理
     for (const tech of service.technologies) {
       const productData = eolData[tech.name];
       if (!productData) {
@@ -39,62 +50,68 @@ export function convertToGanttData(
         tech.currentVersion
       );
       
+      // バージョンタスクを作成
       for (const cycle of relevantCycles) {
-        // cycle.eolがfalseまたは存在しない場合はスキップ
-        if (!cycle.releaseDate || typeof cycle.eol !== 'string') {
+        // cycle.eolがfalseの場合は、supportまたは適切な終了日を設定
+        let eolDateStr: string;
+        if (typeof cycle.eol === 'string') {
+          eolDateStr = cycle.eol;
+        } else if (cycle.eol === false) {
+          // eolがfalseの場合、supportがあればそれを使用、なければ5年後を設定
+          if (cycle.support && typeof cycle.support === 'string') {
+            eolDateStr = cycle.support;
+          } else {
+            const releaseDate = new Date(cycle.releaseDate);
+            releaseDate.setFullYear(releaseDate.getFullYear() + 5);
+            eolDateStr = releaseDate.toISOString().split('T')[0];
+          }
+        } else {
+          continue;
+        }
+        
+        if (!cycle.releaseDate) {
           continue;
         }
         
         const startDate = new Date(cycle.releaseDate);
-        const endDate = new Date(cycle.eol);
+        const endDate = new Date(eolDateStr);
+        const now = new Date();
         
-        // 要件 3.6: すでにEOLを迎えたVersionを視覚的に区別できるようにする
-        const isEOL = isVersionEOL(cycle.eol);
+        // 現在使用中のバージョンかどうかを判定
+        const isCurrentVersion = compareVersions(cycle.cycle, tech.currentVersion) === 0;
         
-        // 要件 3.4: 各Versionのバーを、リリース日からEOL_Dateまでの期間として表示する
-        const task: ITask = {
+        // 期間を分割してセグメントを作成
+        const stages = calculateStages(startDate, endDate, cycle.lts || false);
+        const segments = stages.map(stage => ({
+          start: stage.start,
+          end: stage.end,
+          stage: stage.stage,
+        }));
+        const lifecycleStage = getLifecycleStage(cycle, startDate, endDate);
+
+        const task: GanttTask = {
           id: taskId++,
-          text: `${tech.name} ${cycle.cycle}`,
+          text: `${tech.name} ${cycle.cycle}${isCurrentVersion ? ' ★' : ''}`,
           start: startDate,
           end: endDate,
           type: 'task',
-          parent: serviceId,
-          progress: isEOL ? 100 : 0, // EOL済みは100%、未EOLは0%
-          css: isEOL ? 'eol-task' : 'active-task', // 要件 3.6: EOL状態に応じたCSSクラス
-          // detailsはstring型でJSONとして保存
+          progress: 0,
+          css: `stage-${lifecycleStage}${isCurrentVersion ? ' current-version' : ''}`,
+          segments,
           details: JSON.stringify({
             version: cycle.cycle,
-            eolDate: cycle.eol,
-            isEOL,
+            eolDate: eolDateStr,
+            releaseDate: cycle.releaseDate,
+            stage: lifecycleStage,
+            lts: cycle.lts || false,
+            techName: tech.name,
+            serviceName: service.name,
+            isCurrentVersion,
           }),
         };
         
-        tempTasks.push(task);
-        
-        // サマリータスクの期間を更新
-        if (!hasValidTasks) {
-          minStart = startDate;
-          maxEnd = endDate;
-          hasValidTasks = true;
-        } else {
-          if (startDate < minStart) minStart = startDate;
-          if (endDate > maxEnd) maxEnd = endDate;
-        }
+        tasks.push(task);
       }
-    }
-    
-    // サマリータスクを追加（子タスクがある場合のみ）
-    if (hasValidTasks) {
-      tasks.push({
-        id: serviceId,
-        text: service.name,
-        start: minStart,
-        end: maxEnd,
-        type: 'summary',
-      });
-      
-      // 子タスクを追加
-      tasks.push(...tempTasks);
     }
   }
   
@@ -102,6 +119,164 @@ export function convertToGanttData(
   const scales = generateGanttScales();
   
   return { tasks, scales };
+}
+
+/**
+ * バージョンの期間をステージごとに分割する関数
+ */
+function calculateStages(
+  startDate: Date,
+  endDate: Date,
+  isLTS: boolean
+): Array<{ start: Date; end: Date; stage: 'current' | 'active' | 'maintenance' | 'eol' }> {
+  const now = new Date();
+  const stages: Array<{ start: Date; end: Date; stage: 'current' | 'active' | 'maintenance' | 'eol' }> = [];
+  
+  // EOL済みの場合
+  if (endDate < now) {
+    return [{
+      start: startDate,
+      end: endDate,
+      stage: 'eol'
+    }];
+  }
+  
+  const totalDuration = endDate.getTime() - startDate.getTime();
+  
+  if (isLTS) {
+    // LTSの場合: 50%までactive、50%以降maintenance
+    const activeEnd = new Date(startDate.getTime() + totalDuration * 0.5);
+    
+    if (now < activeEnd) {
+      // 現在activeフェーズ
+      stages.push({
+        start: startDate,
+        end: activeEnd,
+        stage: 'active'
+      });
+      stages.push({
+        start: activeEnd,
+        end: endDate,
+        stage: 'maintenance'
+      });
+    } else {
+      // 現在maintenanceフェーズ
+      stages.push({
+        start: startDate,
+        end: activeEnd,
+        stage: 'active'
+      });
+      stages.push({
+        start: activeEnd,
+        end: endDate,
+        stage: 'maintenance'
+      });
+    }
+  } else {
+    // 非LTSの場合: 75%までcurrent、25%までactive、残りmaintenance
+    const currentEnd = new Date(startDate.getTime() + totalDuration * 0.75);
+    const activeEnd = new Date(startDate.getTime() + totalDuration * 0.9);
+    
+    if (now < currentEnd) {
+      // 現在currentフェーズ
+      stages.push({
+        start: startDate,
+        end: currentEnd,
+        stage: 'current'
+      });
+      stages.push({
+        start: currentEnd,
+        end: activeEnd,
+        stage: 'active'
+      });
+      stages.push({
+        start: activeEnd,
+        end: endDate,
+        stage: 'maintenance'
+      });
+    } else if (now < activeEnd) {
+      // 現在activeフェーズ
+      stages.push({
+        start: startDate,
+        end: currentEnd,
+        stage: 'current'
+      });
+      stages.push({
+        start: currentEnd,
+        end: activeEnd,
+        stage: 'active'
+      });
+      stages.push({
+        start: activeEnd,
+        end: endDate,
+        stage: 'maintenance'
+      });
+    } else {
+      // 現在maintenanceフェーズ
+      stages.push({
+        start: startDate,
+        end: currentEnd,
+        stage: 'current'
+      });
+      stages.push({
+        start: currentEnd,
+        end: activeEnd,
+        stage: 'active'
+      });
+      stages.push({
+        start: activeEnd,
+        end: endDate,
+        stage: 'maintenance'
+      });
+    }
+  }
+  
+  return stages;
+}
+
+/**
+ * ライフサイクルステージを判定する関数
+ */
+function getLifecycleStage(
+  cycle: EOLCycle,
+  startDate: Date,
+  endDate: Date
+): 'current' | 'active' | 'maintenance' | 'eol' | 'unstable' {
+  const now = new Date();
+  
+  // EOL済み
+  if (endDate < now) {
+    return 'eol';
+  }
+  
+  // LTSの場合
+  if (cycle.lts) {
+    // サポート期間の残り時間を計算
+    const totalDuration = endDate.getTime() - startDate.getTime();
+    const remainingDuration = endDate.getTime() - now.getTime();
+    const remainingRatio = remainingDuration / totalDuration;
+    
+    // 残り期間が50%以上ならactive、それ以下ならmaintenance
+    return remainingRatio > 0.5 ? 'active' : 'maintenance';
+  }
+  
+  // 非LTSの場合
+  const totalDuration = endDate.getTime() - startDate.getTime();
+  const remainingDuration = endDate.getTime() - now.getTime();
+  const remainingRatio = remainingDuration / totalDuration;
+  
+  // 残り期間が75%以上ならcurrent
+  if (remainingRatio > 0.75) {
+    return 'current';
+  }
+  
+  // 残り期間が25%以上ならactive
+  if (remainingRatio > 0.25) {
+    return 'active';
+  }
+  
+  // それ以外はmaintenance
+  return 'maintenance';
 }
 
 /**

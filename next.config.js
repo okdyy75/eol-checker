@@ -22,12 +22,6 @@ const nextConfig = {
     ignoreBuildErrors: false,
   },
   
-  // 実験的機能
-  experimental: {
-    // App Routerの最適化
-    optimizePackageImports: ['@svar-ui/react-gantt'],
-  },
-  
   // 静的ファイル配信設定
   assetPrefix: process.env.NODE_ENV === 'production' ? '' : '',
   

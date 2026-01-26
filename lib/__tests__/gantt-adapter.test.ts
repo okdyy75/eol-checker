@@ -73,12 +73,16 @@ describe('gantt-adapter', () => {
       expect(result.tasks.length).toBeGreaterThan(0);
     });
 
-    it('should create summary task for each service', () => {
+    it('should create tasks for each technology version', () => {
       const result = convertToGanttData(mockServices, mockEOLData);
       
+      // サマリータスクは作成されない
       const summaryTasks = result.tasks.filter(task => task.type === 'summary');
-      expect(summaryTasks).toHaveLength(1);
-      expect(summaryTasks[0].text).toBe('Test Service');
+      expect(summaryTasks.length).toBe(0);
+      
+      // バージョンタスクが作成される（期間ごとに分割される）
+      const techTasks = result.tasks.filter(task => task.type === 'task');
+      expect(techTasks.length).toBeGreaterThan(0);
     });
 
     it('should create individual tasks for each technology version', () => {
@@ -87,8 +91,22 @@ describe('gantt-adapter', () => {
       const techTasks = result.tasks.filter(task => task.type === 'task');
       expect(techTasks.length).toBeGreaterThan(0);
       
-      // Python versions (3.9, 3.10) + Node.js versions (16, 18)
+      // 各バージョンは1タスクになり、セグメントで期間を表現する
+      // Python versions (3.9, 3.10) + Node.js versions (16, 18) = 4 versions
       expect(techTasks.length).toBe(4);
+      
+      // 各タスクにはステージ情報が含まれる
+      techTasks.forEach(task => {
+        expect(task.css).toMatch(/^stage-/);
+        expect(task.details).toBeDefined();
+        expect(task.segments).toBeDefined();
+        expect(task.segments?.length).toBeGreaterThan(0);
+        
+        const details = JSON.parse(task.details as string);
+        expect(details.stage).toBeDefined();
+        expect(['current', 'active', 'maintenance', 'eol']).toContain(details.stage);
+        expect(details.isCurrentVersion).toBeDefined();
+      });
     });
 
     it('should handle missing EOL data gracefully', () => {
