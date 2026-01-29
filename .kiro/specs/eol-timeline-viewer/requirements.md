@@ -79,13 +79,15 @@ EOL Timeline Viewerは、開発中のサービスで使用している言語や�
 
 #### 受入基準
 
-1. THE System SHALL すべての入力データ（Service、Technology、Version）をURLパラメータとしてエンコードする
-2. WHEN ユーザーがデータを入力または変更した場合、THE System SHALL URLを自動的に更新する
-3. WHEN ユーザーがURL_Stateを含むURLにアクセスした場合、THE System SHALL URLからデータをデコードし、アプリケーションの状態を復元する
-4. THE System SHALL URLが最大長制限（2048文字）を超えないように、データを効率的にエンコードする
-5. IF URLのデコードに失敗した場合、THEN THE System SHALL エラーメッセージを表示し、空の状態から開始する
-6. THE System SHALL データが空の場合、URLパラメータをクリアする機能を提供する
-7. THE System SHALL URL長制限を超える場合、ユーザーに通知する
+1. THE System SHALL すべての入力データ（Service、Technology、Version）をセミコロン区切り形式でURLパラメータとしてエンコードする
+2. THE System SHALL URL形式として `?s=サービス名(技術:バージョン,技術:バージョン);サービス名(技術:バージョン)` を使用する
+3. WHEN ユーザーがデータを入力または変更した場合、THE System SHALL URLを自動的に更新する
+4. WHEN ユーザーがURL_Stateを含むURLにアクセスした場合、THE System SHALL URLからデータをデコードし、アプリケーションの状態を復元する
+5. THE System SHALL URLが最大長制限（2048文字）を超えないように、データを効率的にエンコードする
+6. IF URLのデコードに失敗した場合、THEN THE System SHALL エラーメッセージを表示し、空の状態から開始する
+7. THE System SHALL データが空の場合、URLパラメータをクリアする機能を提供する
+8. THE System SHALL URL長制限を超える場合、ユーザーに通知する
+9. THE System SHALL サービス名、技術名、バージョンに含まれる特殊文字（`:`, `;`, `,`, `(`, `)`）を適切にエスケープする
 
 ### 要件5: レスポンシブデザイン
 

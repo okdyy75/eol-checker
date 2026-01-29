@@ -1,277 +1,579 @@
-import { Service } from '../types';
+/**
+ * URL State Management Tests
+ * 
+ * このテストファイルは、URL状態管理機能のエンコード/デコード、
+ * バリデーション、エラーハンドリングをテストします。
+ */
+
 import {
   encodeURLState,
   decodeURLState,
-  getURLStateFromCurrentURL,
-  setURLState,
-  clearURLState,
-  createEmptyURLState,
-  isEmptyURLState,
-  URLStateError,
-  EncodeResult,
-  DecodeResult
+  validateURLState,
+  MAX_URL_LENGTH,
 } from '../url-state';
-
-// モックデータ
-const mockServices: Service[] = [
-  {
-    id: '1',
-    name: 'Test Service',
-    technologies: [
-      {
-        id: '1',
-        name: 'python',
-        currentVersion: '3.9'
-      }
-    ]
-  }
-];
-
-const mockURLState = {
-  version: 1,
-  services: mockServices
-};
-
-// window.location のモック
-const mockLocation = {
-  origin: 'https://example.com',
-  pathname: '/test',
-  search: '',
-  href: 'https://example.com/test'
-};
-
-Object.defineProperty(window, 'location', {
-  value: mockLocation,
-  writable: true
-});
-
-// window.history のモック
-const mockHistory = {
-  replaceState: jest.fn()
-};
-
-Object.defineProperty(window, 'history', {
-  value: mockHistory,
-  writable: true
-});
+import { URLState, Service } from '../types';
 
 describe('url-state', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockLocation.search = '';
-  });
-
-  describe('createEmptyURLState', () => {
-    it('空のURL状態を作成する', () => {
-      const result = createEmptyURLState();
-      
-      expect(result.version).toBe(1);
-      expect(result.services).toEqual([]);
-    });
-  });
-
-  describe('isEmptyURLState', () => {
-    it('空のサービス配列の場合はtrueを返す', () => {
-      const emptyState = createEmptyURLState();
-      expect(isEmptyURLState(emptyState)).toBe(true);
-    });
-
-    it('サービスが存在する場合はfalseを返す', () => {
-      expect(isEmptyURLState(mockURLState)).toBe(false);
-    });
-
-    it('servicesがundefinedの場合はtrueを返す', () => {
-      const invalidState = { version: 1, services: undefined as any };
-      expect(isEmptyURLState(invalidState)).toBe(true);
-    });
-  });
-
   describe('encodeURLState', () => {
-    it('正常にURL状態をエンコードできる', () => {
-      const result = encodeURLState(mockURLState);
-      
-      expect(result.success).toBe(true);
-      expect(result.data).toBeDefined();
-      expect(typeof result.data).toBe('string');
-    });
-
-    it('無効なデータの場合はエラーを返す', () => {
-      const invalidState = {
+    it('空のサービス配列の場合は空文字列を返す', () => {
+      const state: URLState = {
         version: 1,
-        services: [{ id: '', name: '', technologies: [] }] // 空の名前は無効
+        services: [],
       };
       
-      const result = encodeURLState(invalidState);
-      
-      expect(result.success).toBe(false);
-      expect(result.error?.type).toBe('VALIDATION_ERROR');
+      expect(encodeURLState(state)).toBe('');
     });
 
-    it('エンコード処理でエラーが発生した場合を処理する', () => {
-      // JSON.stringifyでエラーを発生させるため、循環参照を作成
-      const circularState: any = { version: 1, services: [] };
-      circularState.circular = circularState;
-      
-      const result = encodeURLState(circularState);
-      
-      expect(result.success).toBe(false);
-      // 循環参照の場合、バリデーションでエラーになる可能性もある
-      expect(['DECODE_ERROR', 'VALIDATION_ERROR']).toContain(result.error?.type);
-    });
-  });
-
-  describe('decodeURLState', () => {
-    it('正常にURL状態をデコードできる', () => {
-      // まずエンコードしてからデコード
-      const encodeResult = encodeURLState(mockURLState);
-      expect(encodeResult.success).toBe(true);
-      
-      const decodeResult = decodeURLState(encodeResult.data!);
-      
-      expect(decodeResult.success).toBe(true);
-      expect(decodeResult.data).toEqual(mockURLState);
-    });
-
-    it('空文字列の場合はエラーを返す', () => {
-      const result = decodeURLState('');
-      
-      expect(result.success).toBe(false);
-      expect(result.error?.type).toBe('DECODE_ERROR');
-    });
-
-    it('不正なBase64文字列の場合はエラーを返す', () => {
-      const result = decodeURLState('invalid-base64!@#');
-      
-      expect(result.success).toBe(false);
-      expect(result.error?.type).toBe('DECODE_ERROR');
-    });
-
-    it('不正なJSON形式の場合はエラーを返す', () => {
-      // 不正なJSONをBase64エンコード
-      const invalidJson = btoa('invalid json');
-      const result = decodeURLState(invalidJson);
-      
-      expect(result.success).toBe(false);
-      expect(result.error?.type).toBe('DECODE_ERROR');
-    });
-
-    it('スキーマバージョンが異なる場合はエラーを返す', () => {
-      const invalidVersionState = {
-        version: 999,
-        services: mockServices
-      };
-      
-      const encoded = btoa(encodeURIComponent(JSON.stringify(invalidVersionState)));
-      const result = decodeURLState(encoded);
-      
-      expect(result.success).toBe(false);
-      expect(result.error?.type).toBe('SCHEMA_VERSION_MISMATCH');
-    });
-
-    it('不正なサービス構造の場合はエラーを返す', () => {
-      const invalidStructureState = {
-        version: 1,
-        services: [{ invalid: 'structure' }]
-      };
-      
-      const encoded = btoa(encodeURIComponent(JSON.stringify(invalidStructureState)));
-      const result = decodeURLState(encoded);
-      
-      expect(result.success).toBe(false);
-      expect(result.error?.type).toBe('DECODE_ERROR');
-    });
-  });
-
-  describe('getURLStateFromCurrentURL', () => {
-    it('URLパラメータからデータを取得できる', () => {
-      const encodeResult = encodeURLState(mockURLState);
-      expect(encodeResult.success).toBe(true);
-      
-      // window.locationのsearchを設定
-      mockLocation.search = `?data=${encodeResult.data}`;
-      
-      const result = getURLStateFromCurrentURL();
-      
-      expect(result.success).toBe(true);
-      expect(result.data).toEqual(mockURLState);
-    });
-
-    it('データパラメータが存在しない場合はエラーを返す', () => {
-      mockLocation.search = '';
-      
-      const result = getURLStateFromCurrentURL();
-      
-      expect(result.success).toBe(false);
-      expect(result.error?.type).toBe('DECODE_ERROR');
-    });
-  });
-
-  describe('setURLState', () => {
-    it('URL状態をブラウザのURLに設定できる', () => {
-      const result = setURLState(mockURLState);
-      
-      expect(result.success).toBe(true);
-      expect(mockHistory.replaceState).toHaveBeenCalled();
-    });
-
-    it('エンコードに失敗した場合はエラーを返す', () => {
-      const invalidState = {
-        version: 1,
-        services: [{ id: '', name: '', technologies: [] }]
-      };
-      
-      const result = setURLState(invalidState);
-      
-      expect(result.success).toBe(false);
-    });
-  });
-
-  describe('clearURLState', () => {
-    it('URLからデータパラメータを削除する', () => {
-      clearURLState();
-      
-      expect(mockHistory.replaceState).toHaveBeenCalled();
-    });
-  });
-
-  describe('ラウンドトリップテスト', () => {
-    it('エンコード→デコードで元のデータが復元される', () => {
-      const encodeResult = encodeURLState(mockURLState);
-      expect(encodeResult.success).toBe(true);
-      
-      const decodeResult = decodeURLState(encodeResult.data!);
-      expect(decodeResult.success).toBe(true);
-      expect(decodeResult.data).toEqual(mockURLState);
-    });
-
-    it('複数のサービスでもラウンドトリップが成功する', () => {
-      const multiServiceState = {
+    it('単一サービス、単一技術の場合は正しくエンコードする', () => {
+      const state: URLState = {
         version: 1,
         services: [
           {
             id: '1',
-            name: 'Service 1',
+            name: 'myapp',
             technologies: [
-              { id: '1', name: 'python', currentVersion: '3.9' },
-              { id: '2', name: 'nodejs', currentVersion: '18.0.0' }
-            ]
+              {
+                id: '1',
+                name: 'python',
+                currentVersion: '3.9',
+              },
+            ],
+          },
+        ],
+      };
+      
+      const encoded = encodeURLState(state);
+      expect(encoded).toBe('myapp(python:3.9)');
+    });
+
+    it('単一サービス、複数技術の場合は正しくエンコードする', () => {
+      const state: URLState = {
+        version: 1,
+        services: [
+          {
+            id: '1',
+            name: 'myapp',
+            technologies: [
+              {
+                id: '1',
+                name: 'python',
+                currentVersion: '3.9',
+              },
+              {
+                id: '2',
+                name: 'nodejs',
+                currentVersion: '18.0',
+              },
+            ],
+          },
+        ],
+      };
+      
+      const encoded = encodeURLState(state);
+      expect(encoded).toBe('myapp(python:3.9,nodejs:18.0)');
+    });
+
+    it('複数サービスの場合は正しくエンコードする', () => {
+      const state: URLState = {
+        version: 1,
+        services: [
+          {
+            id: '1',
+            name: 'myapp',
+            technologies: [
+              {
+                id: '1',
+                name: 'python',
+                currentVersion: '3.9',
+              },
+            ],
           },
           {
             id: '2',
-            name: 'Service 2',
+            name: 'api',
             technologies: [
-              { id: '3', name: 'react', currentVersion: '18.2.0' }
-            ]
-          }
-        ]
+              {
+                id: '2',
+                name: 'go',
+                currentVersion: '1.20',
+              },
+            ],
+          },
+        ],
       };
       
-      const encodeResult = encodeURLState(multiServiceState);
-      expect(encodeResult.success).toBe(true);
+      const encoded = encodeURLState(state);
+      expect(encoded).toBe('myapp(python:3.9);api(go:1.20)');
+    });
+
+    it('特殊文字を含むサービス名をエスケープする', () => {
+      const state: URLState = {
+        version: 1,
+        services: [
+          {
+            id: '1',
+            name: 'my-app [prod]',
+            technologies: [
+              {
+                id: '1',
+                name: 'python',
+                currentVersion: '3.9',
+              },
+            ],
+          },
+        ],
+      };
       
-      const decodeResult = decodeURLState(encodeResult.data!);
-      expect(decodeResult.success).toBe(true);
-      expect(decodeResult.data).toEqual(multiServiceState);
+      const encoded = encodeURLState(state);
+      // 括弧が含まれるのでエンコードされる
+      expect(encoded).toContain('%5B');
+      expect(encoded).toContain('%5D');
+    });
+
+    it('特殊文字を含まない場合はエンコードしない', () => {
+      const state: URLState = {
+        version: 1,
+        services: [
+          {
+            id: '1',
+            name: 'myapp',
+            technologies: [
+              {
+                id: '1',
+                name: 'python',
+                currentVersion: '3.9',
+              },
+            ],
+          },
+        ],
+      };
+      
+      const encoded = encodeURLState(state);
+      // 特殊文字がないのでそのまま
+      expect(encoded).toBe('myapp(python:3.9)');
+    });
+
+    it('特殊文字を含む技術名とバージョンをエスケープする', () => {
+      const state: URLState = {
+        version: 1,
+        services: [
+          {
+            id: '1',
+            name: 'myapp',
+            technologies: [
+              {
+                id: '1',
+                name: 'node.js',
+                currentVersion: '18.0.0-beta',
+              },
+            ],
+          },
+        ],
+      };
+      
+      const encoded = encodeURLState(state);
+      // ドットとハイフンは特殊文字ではないのでエンコードされない
+      expect(encoded).toBe('myapp(node.js:18.0.0-beta)');
+    });
+
+    it('URL長が制限を超える場合はエラーをスローする', () => {
+      // 非常に長いサービス名を生成（エンコード後に確実に2048文字を超える）
+      const longName = 'a'.repeat(2100);
+      const state: URLState = {
+        version: 1,
+        services: [
+          {
+            id: '1',
+            name: longName,
+            technologies: [
+              {
+                id: '1',
+                name: 'python',
+                currentVersion: '3.9',
+              },
+            ],
+          },
+        ],
+      };
+      
+      expect(() => encodeURLState(state)).toThrow(/URL length.*exceeds maximum/);
+    });
+  });
+
+  describe('decodeURLState', () => {
+    it('空文字列の場合は空のサービス配列を返す', () => {
+      const decoded = decodeURLState('');
+      
+      expect(decoded.version).toBe(1);
+      expect(decoded.services).toEqual([]);
+    });
+
+    it('空白文字のみの場合は空のサービス配列を返す', () => {
+      const decoded = decodeURLState('   ');
+      
+      expect(decoded.version).toBe(1);
+      expect(decoded.services).toEqual([]);
+    });
+
+    it('単一サービス、単一技術の場合は正しくデコードする', () => {
+      const decoded = decodeURLState('myapp(python:3.9)');
+      
+      expect(decoded.version).toBe(1);
+      expect(decoded.services).toHaveLength(1);
+      expect(decoded.services[0].name).toBe('myapp');
+      expect(decoded.services[0].technologies).toHaveLength(1);
+      expect(decoded.services[0].technologies[0].name).toBe('python');
+      expect(decoded.services[0].technologies[0].currentVersion).toBe('3.9');
+    });
+
+    it('単一サービス、複数技術の場合は正しくデコードする', () => {
+      const decoded = decodeURLState('myapp(python:3.9,nodejs:18.0)');
+      
+      expect(decoded.version).toBe(1);
+      expect(decoded.services).toHaveLength(1);
+      expect(decoded.services[0].name).toBe('myapp');
+      expect(decoded.services[0].technologies).toHaveLength(2);
+      expect(decoded.services[0].technologies[0].name).toBe('python');
+      expect(decoded.services[0].technologies[0].currentVersion).toBe('3.9');
+      expect(decoded.services[0].technologies[1].name).toBe('nodejs');
+      expect(decoded.services[0].technologies[1].currentVersion).toBe('18.0');
+    });
+
+    it('複数サービスの場合は正しくデコードする', () => {
+      const decoded = decodeURLState('myapp(python:3.9);api(go:1.20)');
+      
+      expect(decoded.version).toBe(1);
+      expect(decoded.services).toHaveLength(2);
+      expect(decoded.services[0].name).toBe('myapp');
+      expect(decoded.services[0].technologies[0].name).toBe('python');
+      expect(decoded.services[1].name).toBe('api');
+      expect(decoded.services[1].technologies[0].name).toBe('go');
+    });
+
+    it('エスケープされた特殊文字を正しくデコードする', () => {
+      const decoded = decodeURLState('my-app%20%5Bprod%5D(python:3.9)');
+      
+      expect(decoded.services[0].name).toBe('my-app [prod]');
+    });
+
+    it('括弧が欠けている場合はエラーをスローする', () => {
+      expect(() => decodeURLState('myapp')).toThrow(/missing parentheses/);
+      expect(() => decodeURLState('myapp(python:3.9')).toThrow(/missing parentheses/);
+      expect(() => decodeURLState('myapppython:3.9)')).toThrow(/missing parentheses/);
+    });
+
+    it('サービス名が空の場合はエラーをスローする', () => {
+      expect(() => decodeURLState('(python:3.9)')).toThrow(/missing service name/);
+    });
+
+    it('技術名とバージョンの区切りがない場合はエラーをスローする', () => {
+      expect(() => decodeURLState('myapp(python3.9)')).toThrow(/missing colon/);
+    });
+
+    it('技術名が空の場合はエラーをスローする', () => {
+      expect(() => decodeURLState('myapp(:3.9)')).toThrow(/Technology name cannot be empty/);
+    });
+
+    it('バージョンが空の場合はエラーをスローする', () => {
+      expect(() => decodeURLState('myapp(python:)')).toThrow(/Technology version cannot be empty/);
+    });
+
+    it('不正なフォーマットの場合はエラーメッセージに詳細を含む', () => {
+      expect(() => decodeURLState('invalid')).toThrow(/Failed to decode URL state/);
+    });
+  });
+
+  describe('ラウンドトリップテスト', () => {
+    it('エンコード→デコードで元のデータを復元する（単一サービス）', () => {
+      const original: URLState = {
+        version: 1,
+        services: [
+          {
+            id: '1',
+            name: 'myapp',
+            technologies: [
+              {
+                id: '1',
+                name: 'python',
+                currentVersion: '3.9',
+              },
+              {
+                id: '2',
+                name: 'nodejs',
+                currentVersion: '18.0',
+              },
+            ],
+          },
+        ],
+      };
+      
+      const encoded = encodeURLState(original);
+      const decoded = decodeURLState(encoded);
+      
+      expect(decoded.version).toBe(original.version);
+      expect(decoded.services).toHaveLength(original.services.length);
+      expect(decoded.services[0].name).toBe(original.services[0].name);
+      expect(decoded.services[0].technologies).toHaveLength(
+        original.services[0].technologies.length
+      );
+      expect(decoded.services[0].technologies[0].name).toBe(
+        original.services[0].technologies[0].name
+      );
+      expect(decoded.services[0].technologies[0].currentVersion).toBe(
+        original.services[0].technologies[0].currentVersion
+      );
+    });
+
+    it('エンコード→デコードで元のデータを復元する（複数サービス）', () => {
+      const original: URLState = {
+        version: 1,
+        services: [
+          {
+            id: '1',
+            name: 'web',
+            technologies: [
+              {
+                id: '1',
+                name: 'react',
+                currentVersion: '18',
+              },
+              {
+                id: '2',
+                name: 'nodejs',
+                currentVersion: '20',
+              },
+            ],
+          },
+          {
+            id: '2',
+            name: 'api',
+            technologies: [
+              {
+                id: '3',
+                name: 'python',
+                currentVersion: '3.11',
+              },
+            ],
+          },
+          {
+            id: '3',
+            name: 'db',
+            technologies: [
+              {
+                id: '4',
+                name: 'postgres',
+                currentVersion: '15',
+              },
+            ],
+          },
+        ],
+      };
+      
+      const encoded = encodeURLState(original);
+      const decoded = decodeURLState(encoded);
+      
+      expect(decoded.version).toBe(original.version);
+      expect(decoded.services).toHaveLength(original.services.length);
+      
+      for (let i = 0; i < original.services.length; i++) {
+        expect(decoded.services[i].name).toBe(original.services[i].name);
+        expect(decoded.services[i].technologies).toHaveLength(
+          original.services[i].technologies.length
+        );
+        
+        for (let j = 0; j < original.services[i].technologies.length; j++) {
+          expect(decoded.services[i].technologies[j].name).toBe(
+            original.services[i].technologies[j].name
+          );
+          expect(decoded.services[i].technologies[j].currentVersion).toBe(
+            original.services[i].technologies[j].currentVersion
+          );
+        }
+      }
+    });
+
+    it('特殊文字を含むデータでもラウンドトリップが成功する', () => {
+      const original: URLState = {
+        version: 1,
+        services: [
+          {
+            id: '1',
+            name: 'my-app [prod]',
+            technologies: [
+              {
+                id: '1',
+                name: 'node.js',
+                currentVersion: '18.0.0-beta',
+              },
+            ],
+          },
+        ],
+      };
+      
+      const encoded = encodeURLState(original);
+      const decoded = decodeURLState(encoded);
+      
+      expect(decoded.services[0].name).toBe(original.services[0].name);
+      expect(decoded.services[0].technologies[0].name).toBe(
+        original.services[0].technologies[0].name
+      );
+      expect(decoded.services[0].technologies[0].currentVersion).toBe(
+        original.services[0].technologies[0].currentVersion
+      );
+    });
+  });
+
+  describe('validateURLState', () => {
+    it('有効なURLStateの場合はエラーをスローしない', () => {
+      const validState: URLState = {
+        version: 1,
+        services: [
+          {
+            id: '1',
+            name: 'myapp',
+            technologies: [
+              {
+                id: '1',
+                name: 'python',
+                currentVersion: '3.9',
+              },
+            ],
+          },
+        ],
+      };
+      
+      expect(() => validateURLState(validState)).not.toThrow();
+    });
+
+    it('nullまたはundefinedの場合はエラーをスローする', () => {
+      expect(() => validateURLState(null as any)).toThrow(/cannot be null or undefined/);
+      expect(() => validateURLState(undefined as any)).toThrow(/cannot be null or undefined/);
+    });
+
+    it('versionが数値でない場合はエラーをスローする', () => {
+      const invalidState = {
+        version: '1' as any,
+        services: [],
+      };
+      
+      expect(() => validateURLState(invalidState)).toThrow(/version must be a number/);
+    });
+
+    it('servicesが配列でない場合はエラーをスローする', () => {
+      const invalidState = {
+        version: 1,
+        services: {} as any,
+      };
+      
+      expect(() => validateURLState(invalidState)).toThrow(/services must be an array/);
+    });
+
+    it('サービスIDが空の場合はエラーをスローする', () => {
+      const invalidState: URLState = {
+        version: 1,
+        services: [
+          {
+            id: '',
+            name: 'myapp',
+            technologies: [],
+          },
+        ],
+      };
+      
+      expect(() => validateURLState(invalidState)).toThrow(/Service id must be a non-empty string/);
+    });
+
+    it('サービス名が空の場合はエラーをスローする', () => {
+      const invalidState: URLState = {
+        version: 1,
+        services: [
+          {
+            id: '1',
+            name: '',
+            technologies: [],
+          },
+        ],
+      };
+      
+      expect(() => validateURLState(invalidState)).toThrow(/Service name must be a non-empty string/);
+    });
+
+    it('technologiesが配列でない場合はエラーをスローする', () => {
+      const invalidState = {
+        version: 1,
+        services: [
+          {
+            id: '1',
+            name: 'myapp',
+            technologies: {} as any,
+          },
+        ],
+      };
+      
+      expect(() => validateURLState(invalidState)).toThrow(/technologies must be an array/);
+    });
+
+    it('技術IDが空の場合はエラーをスローする', () => {
+      const invalidState: URLState = {
+        version: 1,
+        services: [
+          {
+            id: '1',
+            name: 'myapp',
+            technologies: [
+              {
+                id: '',
+                name: 'python',
+                currentVersion: '3.9',
+              },
+            ],
+          },
+        ],
+      };
+      
+      expect(() => validateURLState(invalidState)).toThrow(/Technology id must be a non-empty string/);
+    });
+
+    it('技術名が空の場合はエラーをスローする', () => {
+      const invalidState: URLState = {
+        version: 1,
+        services: [
+          {
+            id: '1',
+            name: 'myapp',
+            technologies: [
+              {
+                id: '1',
+                name: '',
+                currentVersion: '3.9',
+              },
+            ],
+          },
+        ],
+      };
+      
+      expect(() => validateURLState(invalidState)).toThrow(/Technology name must be a non-empty string/);
+    });
+
+    it('バージョンが空の場合はエラーをスローする', () => {
+      const invalidState: URLState = {
+        version: 1,
+        services: [
+          {
+            id: '1',
+            name: 'myapp',
+            technologies: [
+              {
+                id: '1',
+                name: 'python',
+                currentVersion: '',
+              },
+            ],
+          },
+        ],
+      };
+      
+      expect(() => validateURLState(invalidState)).toThrow(/Technology currentVersion must be a non-empty string/);
     });
   });
 });
