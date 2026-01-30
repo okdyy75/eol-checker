@@ -135,3 +135,33 @@ export function findMultipleEOLProducts(
   
   return result;
 }
+
+/**
+ * 特定の技術の利用可能なバージョンリストを取得
+ * 
+ * @param eolData EOLデータマップ
+ * @param productName 技術名
+ * @returns バージョン番号の配列（新しい順）、技術が存在しない場合は空配列
+ */
+export function getVersionsForTechnology(
+  eolData: EOLDataMap,
+  productName: string
+): string[] {
+  const product = findEOLProduct(eolData, productName);
+  if (!product || !product.cycles) {
+    return [];
+  }
+  
+  // cyclesからバージョン番号を抽出し、新しい順にソート
+  return product.cycles
+    .map(cycle => cycle.cycle)
+    .sort((a, b) => {
+      // 数値として比較可能な場合は数値順、そうでない場合は文字列順
+      const numA = parseFloat(a);
+      const numB = parseFloat(b);
+      if (!isNaN(numA) && !isNaN(numB)) {
+        return numB - numA;
+      }
+      return b.localeCompare(a);
+    });
+}

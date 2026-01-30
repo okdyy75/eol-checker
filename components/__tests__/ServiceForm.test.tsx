@@ -21,7 +21,20 @@ jest.mock('@/lib/eol-data', () => ({
       ]
     }
   }),
-  getAvailableTechnologies: jest.fn().mockReturnValue(['python', 'nodejs', 'react'])
+  getAvailableTechnologies: jest.fn().mockReturnValue(['python', 'nodejs', 'react']),
+  getVersionsForTechnology: jest.fn().mockImplementation((eolData, productName) => {
+    if (!eolData || !productName) return [];
+    const product = eolData[productName];
+    if (!product || !product.cycles) return [];
+    return product.cycles.map((cycle: { cycle: string }) => cycle.cycle).sort((a: string, b: string) => {
+      const numA = parseFloat(a);
+      const numB = parseFloat(b);
+      if (!isNaN(numA) && !isNaN(numB)) {
+        return numB - numA;
+      }
+      return b.localeCompare(a);
+    });
+  })
 }));
 
 describe('ServiceForm', () => {

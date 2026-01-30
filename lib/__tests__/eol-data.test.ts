@@ -11,7 +11,8 @@ import {
   clearEOLDataCache,
   getCachedEOLData,
   hasEOLProduct,
-  findMultipleEOLProducts
+  findMultipleEOLProducts,
+  getVersionsForTechnology
 } from '../eol-data';
 import { EOLDataMap, EOLProduct } from '../types';
 
@@ -237,6 +238,49 @@ describe('EOL Data Management', () => {
     it('should return empty object when no products found', () => {
       const result = findMultipleEOLProducts(mockEOLData, ['nonexistent1', 'nonexistent2']);
       expect(result).toEqual({});
+    });
+  });
+
+  describe('getVersionsForTechnology', () => {
+    it('should return sorted version list for existing technology', () => {
+      const result = getVersionsForTechnology(mockEOLData, 'python');
+      expect(result).toEqual(['3.11', '3.10']);
+    });
+
+    it('should return single version for technology with one cycle', () => {
+      const result = getVersionsForTechnology(mockEOLData, 'nodejs');
+      expect(result).toEqual(['18']);
+    });
+
+    it('should return empty array for non-existing technology', () => {
+      const result = getVersionsForTechnology(mockEOLData, 'nonexistent');
+      expect(result).toEqual([]);
+    });
+
+    it('should return empty array for technology with no cycles', () => {
+      const emptyCyclesData: EOLDataMap = {
+        'empty-tech': {
+          productName: 'empty-tech',
+          cycles: []
+        }
+      };
+      const result = getVersionsForTechnology(emptyCyclesData, 'empty-tech');
+      expect(result).toEqual([]);
+    });
+
+    it('should sort versions numerically when possible', () => {
+      const numericData: EOLDataMap = {
+        'test': {
+          productName: 'test',
+          cycles: [
+            { cycle: '1.0', releaseDate: '2020-01-01', eol: '2021-01-01' },
+            { cycle: '10.0', releaseDate: '2023-01-01', eol: '2024-01-01' },
+            { cycle: '2.0', releaseDate: '2021-01-01', eol: '2022-01-01' }
+          ]
+        }
+      };
+      const result = getVersionsForTechnology(numericData, 'test');
+      expect(result).toEqual(['10.0', '2.0', '1.0']);
     });
   });
 });

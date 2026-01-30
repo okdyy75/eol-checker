@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import TechnologyInput from '../TechnologyInput';
-import { Technology } from '@/lib/types';
+import { Technology, EOLDataMap } from '@/lib/types';
 
 // モックデータ
 const mockTechnology: Technology = {
@@ -20,6 +20,24 @@ const mockAvailableTechnologies = [
   'postgresql'
 ];
 
+const mockEOLData: EOLDataMap = {
+  'python': {
+    productName: 'python',
+    cycles: [
+      { cycle: '3.11', releaseDate: '2022-10-24', eol: '2027-10-24' },
+      { cycle: '3.10', releaseDate: '2021-10-04', eol: '2026-10-04' },
+      { cycle: '3.9', releaseDate: '2020-10-05', eol: '2025-10-05' }
+    ]
+  },
+  'nodejs': {
+    productName: 'nodejs',
+    cycles: [
+      { cycle: '20', releaseDate: '2023-04-18', eol: '2026-04-30' },
+      { cycle: '18', releaseDate: '2022-04-19', eol: '2025-04-30' }
+    ]
+  }
+};
+
 const mockOnChange = jest.fn();
 const mockOnRemove = jest.fn();
 
@@ -35,6 +53,7 @@ describe('TechnologyInput', () => {
         availableTechnologies={mockAvailableTechnologies}
         onChange={mockOnChange}
         onRemove={mockOnRemove}
+        eolData={null}
       />
     );
 
@@ -52,6 +71,7 @@ describe('TechnologyInput', () => {
         availableTechnologies={mockAvailableTechnologies}
         onChange={mockOnChange}
         onRemove={mockOnRemove}
+        eolData={mockEOLData}
       />
     );
 
@@ -76,6 +96,7 @@ describe('TechnologyInput', () => {
         availableTechnologies={mockAvailableTechnologies}
         onChange={mockOnChange}
         onRemove={mockOnRemove}
+        eolData={mockEOLData}
       />
     );
 
@@ -100,6 +121,7 @@ describe('TechnologyInput', () => {
         availableTechnologies={mockAvailableTechnologies}
         onChange={mockOnChange}
         onRemove={mockOnRemove}
+        eolData={mockEOLData}
       />
     );
 
@@ -118,6 +140,7 @@ describe('TechnologyInput', () => {
         availableTechnologies={mockAvailableTechnologies}
         onChange={mockOnChange}
         onRemove={mockOnRemove}
+        eolData={mockEOLData}
       />
     );
 
@@ -138,6 +161,7 @@ describe('TechnologyInput', () => {
         availableTechnologies={mockAvailableTechnologies}
         onChange={mockOnChange}
         onRemove={mockOnRemove}
+        eolData={mockEOLData}
       />
     );
 
@@ -165,6 +189,7 @@ describe('TechnologyInput', () => {
         availableTechnologies={mockAvailableTechnologies}
         onChange={mockOnChange}
         onRemove={mockOnRemove}
+        eolData={mockEOLData}
       />
     );
 
@@ -195,6 +220,7 @@ describe('TechnologyInput', () => {
         availableTechnologies={mockAvailableTechnologies}
         onChange={mockOnChange}
         onRemove={mockOnRemove}
+        eolData={mockEOLData}
       />
     );
 
@@ -221,6 +247,7 @@ describe('TechnologyInput', () => {
         availableTechnologies={mockAvailableTechnologies}
         onChange={mockOnChange}
         onRemove={mockOnRemove}
+        eolData={mockEOLData}
       />
     );
 
@@ -242,6 +269,7 @@ describe('TechnologyInput', () => {
         availableTechnologies={mockAvailableTechnologies}
         onChange={mockOnChange}
         onRemove={mockOnRemove}
+        eolData={mockEOLData}
       />
     );
 
@@ -263,6 +291,7 @@ describe('TechnologyInput', () => {
         availableTechnologies={mockAvailableTechnologies}
         onChange={mockOnChange}
         onRemove={mockOnRemove}
+        eolData={mockEOLData}
       />
     );
 
@@ -285,6 +314,7 @@ describe('TechnologyInput', () => {
           availableTechnologies={mockAvailableTechnologies}
           onChange={mockOnChange}
           onRemove={mockOnRemove}
+          eolData={mockEOLData}
         />
         <div data-testid="outside">外部要素</div>
       </div>

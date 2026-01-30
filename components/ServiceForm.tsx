@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Service, Technology } from '@/lib/types';
+import { Service, Technology, EOLDataMap } from '@/lib/types';
 import { loadEOLData, getAvailableTechnologies } from '@/lib/eol-data';
 import TechnologyInput from './TechnologyInput';
 
@@ -12,6 +12,7 @@ interface ServiceFormProps {
 
 export default function ServiceForm({ services, onServicesChange }: ServiceFormProps) {
   const [availableTechnologies, setAvailableTechnologies] = useState<string[]>([]);
+  const [eolData, setEolData] = useState<EOLDataMap | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   
@@ -24,13 +25,15 @@ export default function ServiceForm({ services, onServicesChange }: ServiceFormP
       try {
         setIsLoading(true);
         setLoadError(null);
-        const eolData = await loadEOLData();
-        const technologies = getAvailableTechnologies(eolData);
+        const data = await loadEOLData();
+        setEolData(data);
+        const technologies = getAvailableTechnologies(data);
         setAvailableTechnologies(technologies);
       } catch (error) {
         console.error('Failed to load EOL data:', error);
         setLoadError('技術データの読み込みに失敗しました。ページを再読み込みしてください。');
         setAvailableTechnologies([]);
+        setEolData(null);
       } finally {
         setIsLoading(false);
       }
@@ -206,6 +209,7 @@ export default function ServiceForm({ services, onServicesChange }: ServiceFormP
                       key={technology.id}
                       technology={technology}
                       availableTechnologies={availableTechnologies}
+                      eolData={eolData}
                       onChange={(updatedTechnology) => updateTechnology(technology.id, updatedTechnology)}
                       onRemove={() => removeTechnology(technology.id)}
                     />
