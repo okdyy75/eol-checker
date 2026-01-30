@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ServiceForm from '../ServiceForm';
 import { Service } from '@/lib/types';
@@ -26,65 +26,59 @@ jest.mock('@/lib/eol-data', () => ({
 
 describe('ServiceForm', () => {
   const mockOnServicesChange = jest.fn();
-  const defaultProps = {
-    services: [] as Service[],
-    onServicesChange: mockOnServicesChange
-  };
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('初期状態で正しくレンダリングされる', async () => {
-    render(<ServiceForm {...defaultProps} />);
+  it('ローディング状態を表示する', async () => {
+    render(<ServiceForm services={[]} onServicesChange={mockOnServicesChange} />);
     
     // ローディング状態の確認
     expect(screen.getByText('技術データを読み込み中...')).toBeInTheDocument();
-    
-    // データ読み込み後の確認
-    await waitFor(() => {
-      expect(screen.getByText('サービスと技術スタック')).toBeInTheDocument();
-    });
-    
-    expect(screen.getByText('まだサービスが追加されていません')).toBeInTheDocument();
-    expect(screen.getByText('最初のサービスを追加')).toBeInTheDocument();
   });
 
-  it('サービスを追加できる', async () => {
-    render(<ServiceForm {...defaultProps} />);
+  it('既存のサービスがある場合はそれを表示する', async () => {
+    const services: Service[] = [
+      {
+        id: 'service-1',
+        name: 'テストサービス',
+        technologies: []
+      }
+    ];
     
-    await waitFor(() => {
-      expect(screen.getByText('サービスと技術スタック')).toBeInTheDocument();
+    await act(async () => {
+      render(<ServiceForm services={services} onServicesChange={mockOnServicesChange} />);
     });
     
-    const addButton = screen.getByText('最初のサービスを追加');
-    fireEvent.click(addButton);
+    // サービス名が入力されていることを確認
+    const serviceNameInput = screen.getByPlaceholderText(/サービス名を入力/);
+    expect(serviceNameInput).toHaveValue('テストサービス');
     
-    expect(mockOnServicesChange).toHaveBeenCalledWith([
-      expect.objectContaining({
-        id: expect.any(String),
+    // サービス一覧に表示されていることを確認
+    expect(screen.getByText('テストサービス')).toBeInTheDocument();
+  });
+
+  it('サービス名を入力するとリアルタイムで保存される', async () => {
+    const services: Service[] = [
+      {
+        id: 'service-1',
         name: '',
         technologies: []
-      })
-    ]);
-  });
-
-  it('サービス名を入力できる', async () => {
-    const serviceWithEmptyName: Service = {
-      id: 'service-1',
-      name: '',
-      technologies: []
-    };
+      }
+    ];
     
-    render(<ServiceForm services={[serviceWithEmptyName]} onServicesChange={mockOnServicesChange} />);
-    
-    await waitFor(() => {
-      expect(screen.getByText('サービスと技術スタック')).toBeInTheDocument();
+    await act(async () => {
+      render(<ServiceForm services={services} onServicesChange={mockOnServicesChange} />);
     });
     
     const serviceNameInput = screen.getByPlaceholderText(/サービス名を入力/);
-    fireEvent.change(serviceNameInput, { target: { value: 'テストサービス' } });
     
+    await act(async () => {
+      fireEvent.change(serviceNameInput, { target: { value: 'テストサービス' } });
+    });
+    
+    // リアルタイムで保存されることを確認
     expect(mockOnServicesChange).toHaveBeenCalledWith([
       expect.objectContaining({
         id: 'service-1',
@@ -95,21 +89,25 @@ describe('ServiceForm', () => {
   });
 
   it('技術を追加できる', async () => {
-    const serviceWithName: Service = {
-      id: 'service-1',
-      name: 'テストサービス',
-      technologies: []
-    };
+    const services: Service[] = [
+      {
+        id: 'service-1',
+        name: 'テストサービス',
+        technologies: []
+      }
+    ];
     
-    render(<ServiceForm services={[serviceWithName]} onServicesChange={mockOnServicesChange} />);
-    
-    await waitFor(() => {
-      expect(screen.getByText('サービスと技術スタック')).toBeInTheDocument();
+    await act(async () => {
+      render(<ServiceForm services={services} onServicesChange={mockOnServicesChange} />);
     });
     
-    const addTechButton = screen.getByText('技術を追加');
-    fireEvent.click(addTechButton);
+    const addTechButton = screen.getByText('+ 技術を追加');
     
+    await act(async () => {
+      fireEvent.click(addTechButton);
+    });
+    
+    // 技術が追加されたことを確認
     expect(mockOnServicesChange).toHaveBeenCalledWith([
       expect.objectContaining({
         id: 'service-1',
@@ -139,14 +137,16 @@ describe('ServiceForm', () => {
       }
     ];
     
-    render(<ServiceForm services={services} onServicesChange={mockOnServicesChange} />);
-    
-    await waitFor(() => {
-      expect(screen.getByText('サービスと技術スタック')).toBeInTheDocument();
+    await act(async () => {
+      render(<ServiceForm services={services} onServicesChange={mockOnServicesChange} />);
     });
     
+    // 削除ボタンをクリック（最初のサービスの削除ボタン）
     const deleteButtons = screen.getAllByText('削除');
-    fireEvent.click(deleteButtons[0]); // 最初のサービスを削除
+    
+    await act(async () => {
+      fireEvent.click(deleteButtons[0]);
+    });
     
     expect(mockOnServicesChange).toHaveBeenCalledWith([
       expect.objectContaining({
@@ -157,32 +157,45 @@ describe('ServiceForm', () => {
     ]);
   });
 
-  it('バリデーションエラーが表示される', async () => {
-    const serviceWithInvalidData: Service = {
-      id: 'service-1',
-      name: '', // 空のサービス名
-      technologies: [
-        {
-          id: 'tech-1',
-          name: '', // 空の技術名
-          currentVersion: '' // 空のバージョン
-        }
-      ]
-    };
+  it('既存のサービスを選択して編集できる', async () => {
+    const services: Service[] = [
+      {
+        id: 'service-1',
+        name: 'サービス1',
+        technologies: []
+      },
+      {
+        id: 'service-2',
+        name: 'サービス2',
+        technologies: [
+          {
+            id: 'tech-1',
+            name: 'python',
+            currentVersion: '3.9'
+          }
+        ]
+      }
+    ];
     
-    render(<ServiceForm services={[serviceWithInvalidData]} onServicesChange={mockOnServicesChange} />);
-    
-    await waitFor(() => {
-      expect(screen.getByText('サービスと技術スタック')).toBeInTheDocument();
+    await act(async () => {
+      render(<ServiceForm services={services} onServicesChange={mockOnServicesChange} />);
     });
     
-    // バリデーションエラーが表示されることを確認
+    // 2番目のサービスをクリックして選択（親要素のdivをクリック）
+    const service2Card = screen.getByText('サービス2').closest('div[class*="cursor-pointer"]');
+    
+    await act(async () => {
+      fireEvent.click(service2Card!);
+    });
+    
+    // サービス名が切り替わったことを確認
     await waitFor(() => {
-      expect(screen.getByText('入力エラー')).toBeInTheDocument();
+      const serviceNameInput = screen.getByPlaceholderText(/サービス名を入力/) as HTMLInputElement;
+      expect(serviceNameInput.value).toBe('サービス2');
     });
   });
 
-  it('すべてのデータをクリアできる', async () => {
+  it('新規サービスを追加できる', async () => {
     const services: Service[] = [
       {
         id: 'service-1',
@@ -191,21 +204,59 @@ describe('ServiceForm', () => {
       }
     ];
     
-    // window.confirmをモック
-    const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
-    
-    render(<ServiceForm services={services} onServicesChange={mockOnServicesChange} />);
-    
-    await waitFor(() => {
-      expect(screen.getByText('サービスと技術スタック')).toBeInTheDocument();
+    await act(async () => {
+      render(<ServiceForm services={services} onServicesChange={mockOnServicesChange} />);
     });
     
-    const clearButton = screen.getByText('すべてクリア');
-    fireEvent.click(clearButton);
+    // 新規サービス追加ボタンをクリック
+    const addButton = screen.getByText('+ サービスを追加');
     
-    expect(confirmSpy).toHaveBeenCalledWith('すべてのデータをクリアしますか？この操作は元に戻せません。');
-    expect(mockOnServicesChange).toHaveBeenCalledWith([]);
+    await act(async () => {
+      fireEvent.click(addButton);
+    });
     
-    confirmSpy.mockRestore();
+    // 新規サービスが追加されたことを確認
+    expect(mockOnServicesChange).toHaveBeenCalledWith([
+      expect.objectContaining({
+        id: 'service-1',
+        name: 'テストサービス',
+        technologies: []
+      }),
+      expect.objectContaining({
+        id: expect.any(String),
+        name: '',
+        technologies: []
+      })
+    ]);
+  });
+
+  it('選択中のサービスがハイライト表示される', async () => {
+    const services: Service[] = [
+      {
+        id: 'service-1',
+        name: 'サービス1',
+        technologies: []
+      },
+      {
+        id: 'service-2',
+        name: 'サービス2',
+        technologies: []
+      }
+    ];
+    
+    await act(async () => {
+      render(<ServiceForm services={services} onServicesChange={mockOnServicesChange} />);
+    });
+    
+    // 2番目のサービスを選択
+    const service2Element = screen.getByText('サービス2').closest('div[class*="border"]');
+    
+    await act(async () => {
+      fireEvent.click(service2Element!);
+    });
+    
+    // 選択されたサービスがハイライトされていることを確認（border-blue-500クラス）
+    const selectedElement = screen.getByText('サービス2').closest('div[class*="border-blue-500"]');
+    expect(selectedElement).toBeInTheDocument();
   });
 });

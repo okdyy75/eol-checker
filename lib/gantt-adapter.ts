@@ -303,6 +303,11 @@ export function getRelevantCycles(cycles: EOLCycle[], currentVersion: string): E
     new Date(a.releaseDate).getTime() - new Date(b.releaseDate).getTime()
   );
   
+  // currentVersionが空の場合は、すべてのサイクルを返す
+  if (!currentVersion || currentVersion.trim() === '') {
+    return validCycles;
+  }
+  
   // 現在バージョンのインデックスを見つける
   const currentIndex = validCycles.findIndex(cycle => 
     compareVersions(cycle.cycle, currentVersion) >= 0

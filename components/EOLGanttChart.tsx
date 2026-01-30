@@ -147,7 +147,7 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
         serviceName: service.name,
         tasks,
       };
-    });
+    }).filter(chart => chart.tasks.length > 0); // タスクが空のサービスは除外
   }, [services, eolData, getStageColor]);
 
   // データが空の場合の表示

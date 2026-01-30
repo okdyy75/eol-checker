@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Service, Technology, EOLDataMap } from '@/lib/types';
-import { validateServiceNameField, validateForm, ValidationResult } from '@/lib/validation';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Service, Technology } from '@/lib/types';
 import { loadEOLData, getAvailableTechnologies } from '@/lib/eol-data';
 import TechnologyInput from './TechnologyInput';
 
@@ -13,9 +12,11 @@ interface ServiceFormProps {
 
 export default function ServiceForm({ services, onServicesChange }: ServiceFormProps) {
   const [availableTechnologies, setAvailableTechnologies] = useState<string[]>([]);
-  const [formValidation, setFormValidation] = useState<ValidationResult>({ isValid: true, errors: [] });
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  
+  // 現在編集中のサービスのインデックス
+  const [editingIndex, setEditingIndex] = useState<number>(0);
 
   // EOLデータの読み込み
   useEffect(() => {
@@ -38,85 +39,101 @@ export default function ServiceForm({ services, onServicesChange }: ServiceFormP
     loadTechnologies();
   }, []);
 
-  // フォーム全体のバリデーション
+  // 初期表示時に1つの空のサービスを作成（初回のみ）
+  const hasInitialized = useRef(false);
   useEffect(() => {
-    const validation = validateForm(services);
-    setFormValidation(validation);
-  }, [services]);
+    if (!isLoading && services.length === 0 && !hasInitialized.current) {
+      hasInitialized.current = true;
+      const initialService: Service = {
+        id: `service-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        name: '',
+        technologies: []
+      };
+      onServicesChange([initialService]);
+    }
+  }, [isLoading, services.length, onServicesChange]);
 
-  // 新しいサービスを追加
-  const addService = () => {
+  // 現在編集中のサービスを取得
+  const editingService = services[editingIndex] || services[0];
+
+  // サービスを更新（リアルタイム保存）
+  const updateService = useCallback((index: number, updates: Partial<Service>) => {
+    const updatedServices = services.map((service, i) =>
+      i === index ? { ...service, ...updates } : service
+    );
+    onServicesChange(updatedServices);
+  }, [services, onServicesChange]);
+
+  // サービス名を更新
+  const updateServiceName = (name: string) => {
+    updateService(editingIndex, { name });
+  };
+
+  // 技術を追加
+  const addTechnology = () => {
+    const newTechnology: Technology = {
+      id: `tech-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      name: '',
+      currentVersion: ''
+    };
+    
+    const currentService = services[editingIndex];
+    if (currentService) {
+      updateService(editingIndex, {
+        technologies: [...currentService.technologies, newTechnology]
+      });
+    }
+  };
+
+  // 技術を削除
+  const removeTechnology = (technologyId: string) => {
+    const currentService = services[editingIndex];
+    if (currentService) {
+      updateService(editingIndex, {
+        technologies: currentService.technologies.filter(tech => tech.id !== technologyId)
+      });
+    }
+  };
+
+  // 技術を更新
+  const updateTechnology = (technologyId: string, updatedTechnology: Technology) => {
+    const currentService = services[editingIndex];
+    if (currentService) {
+      updateService(editingIndex, {
+        technologies: currentService.technologies.map(tech =>
+          tech.id === technologyId ? updatedTechnology : tech
+        )
+      });
+    }
+  };
+
+  // 新規サービスを追加
+  const addNewService = () => {
     const newService: Service = {
       id: `service-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       name: '',
       technologies: []
     };
     onServicesChange([...services, newService]);
+    setEditingIndex(services.length); // 新規追加したサービスを編集対象に
   };
 
   // サービスを削除
-  const removeService = (serviceId: string) => {
-    const updatedServices = services.filter(service => service.id !== serviceId);
+  const removeService = (index: number) => {
+    const updatedServices = services.filter((_, i) => i !== index);
     onServicesChange(updatedServices);
-  };
-
-  // サービス名を更新
-  const updateServiceName = (serviceId: string, name: string) => {
-    const updatedServices = services.map(service =>
-      service.id === serviceId ? { ...service, name } : service
-    );
-    onServicesChange(updatedServices);
-  };
-
-  // 技術を追加
-  const addTechnology = (serviceId: string) => {
-    const newTechnology: Technology = {
-      id: `tech-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      name: '',
-      currentVersion: ''
-    };
-
-    const updatedServices = services.map(service =>
-      service.id === serviceId
-        ? { ...service, technologies: [...service.technologies, newTechnology] }
-        : service
-    );
-    onServicesChange(updatedServices);
-  };
-
-  // 技術を削除
-  const removeTechnology = (serviceId: string, technologyId: string) => {
-    const updatedServices = services.map(service =>
-      service.id === serviceId
-        ? {
-            ...service,
-            technologies: service.technologies.filter(tech => tech.id !== technologyId)
-          }
-        : service
-    );
-    onServicesChange(updatedServices);
-  };
-
-  // 技術を更新
-  const updateTechnology = (serviceId: string, technologyId: string, updatedTechnology: Technology) => {
-    const updatedServices = services.map(service =>
-      service.id === serviceId
-        ? {
-            ...service,
-            technologies: service.technologies.map(tech =>
-              tech.id === technologyId ? updatedTechnology : tech
-            )
-          }
-        : service
-    );
-    onServicesChange(updatedServices);
-  };
-
-  // データをクリア
-  const clearAllData = () => {
-    if (confirm('すべてのデータをクリアしますか？この操作は元に戻せません。')) {
-      onServicesChange([]);
+    
+    // 削除したサービスが編集中だった場合は、適切なインデックスに調整
+    if (index === editingIndex) {
+      setEditingIndex(Math.min(index, updatedServices.length - 1));
+    } else if (index < editingIndex) {
+      setEditingIndex(editingIndex - 1);
     }
+  };
+
+  // サービスを選択して編集
+  const selectService = (index: number) => {
+    setEditingIndex(index);
   };
 
   if (isLoading) {
@@ -142,197 +159,146 @@ export default function ServiceForm({ services, onServicesChange }: ServiceFormP
   }
 
   return (
-    <div className="space-y-6">
-      {/* ヘッダー */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-        <h2 className="text-xl font-semibold text-gray-800">
-          サービスと技術スタック
-        </h2>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <button
-            onClick={addService}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors text-sm sm:text-base"
-          >
-            + サービス追加
-          </button>
-          {services.length > 0 && (
-            <button
-              onClick={clearAllData}
-              className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors text-sm sm:text-base"
-            >
-              すべてクリア
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* フォーム全体のバリデーションエラー */}
-      {!formValidation.isValid && formValidation.errors.length > 0 && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-          <h3 className="text-red-800 font-medium mb-2">入力エラー</h3>
-          <ul className="space-y-1">
-            {formValidation.errors.map((error, index) => (
-              <li key={index} className="text-red-700 text-sm flex items-center space-x-1">
-                <span className="text-red-500">•</span>
-                <span>{error}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* サービスリスト */}
-      {services.length === 0 ? (
-        <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-          <p className="text-gray-500 mb-4 text-sm sm:text-base">まだサービスが追加されていません</p>
-          <button
-            onClick={addService}
-            className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors text-sm sm:text-base"
-          >
-            最初のサービスを追加
-          </button>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {services.map((service, serviceIndex) => (
-            <ServiceCard
-              key={service.id}
-              service={service}
-              serviceIndex={serviceIndex}
-              availableTechnologies={availableTechnologies}
-              onUpdateServiceName={(name) => updateServiceName(service.id, name)}
-              onRemoveService={() => removeService(service.id)}
-              onAddTechnology={() => addTechnology(service.id)}
-              onRemoveTechnology={(technologyId) => removeTechnology(service.id, technologyId)}
-              onUpdateTechnology={(technologyId, technology) => 
-                updateTechnology(service.id, technologyId, technology)
-              }
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* 左側：入力フォーム */}
+      <div className="space-y-4">
+        <div className="bg-white border border-gray-200 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-800">
+              サービスを編集
+            </h3>
+            <span className="text-sm text-gray-500">
+              {editingIndex + 1} / {services.length}
+            </span>
+          </div>
+          
+          {/* サービス名入力 */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              サービス名
+            </label>
+            <input
+              type="text"
+              placeholder="サービス名を入力（例: マイクロサービスA、Webアプリ）"
+              value={editingService?.name || ''}
+              onChange={(e) => updateServiceName(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
             />
-          ))}
-        </div>
-      )}
+          </div>
 
-      {/* フォーム状態の表示 */}
-      <div className="text-sm text-gray-500 border-t pt-4">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-          <span className="text-center sm:text-left">
-            サービス数: {services.length} | 
-            技術数: {services.reduce((total, service) => total + service.technologies.length, 0)}
-          </span>
-          <span className={`px-2 py-1 rounded text-xs self-center sm:self-auto ${
-            formValidation.isValid 
-              ? 'bg-green-100 text-green-800' 
-              : 'bg-red-100 text-red-800'
-          }`}>
-            {formValidation.isValid ? '入力OK' : 'エラーあり'}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// サービスカードコンポーネント
-interface ServiceCardProps {
-  service: Service;
-  serviceIndex: number;
-  availableTechnologies: string[];
-  onUpdateServiceName: (name: string) => void;
-  onRemoveService: () => void;
-  onAddTechnology: () => void;
-  onRemoveTechnology: (technologyId: string) => void;
-  onUpdateTechnology: (technologyId: string, technology: Technology) => void;
-}
-
-function ServiceCard({
-  service,
-  serviceIndex,
-  availableTechnologies,
-  onUpdateServiceName,
-  onRemoveService,
-  onAddTechnology,
-  onRemoveTechnology,
-  onUpdateTechnology
-}: ServiceCardProps) {
-  const [serviceNameError, setServiceNameError] = useState<string | null>(null);
-
-  // サービス名のバリデーション
-  const handleServiceNameChange = (name: string) => {
-    onUpdateServiceName(name);
-    const validation = validateServiceNameField(name);
-    setServiceNameError(validation.error);
-  };
-
-  return (
-    <div className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm">
-      {/* サービス名入力 */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:space-x-3 space-y-3 sm:space-y-0 mb-4">
-        <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            サービス名 {serviceIndex + 1}
-          </label>
-          <input
-            type="text"
-            placeholder="サービス名を入力（例: マイクロサービスA、Webアプリ）"
-            value={service.name}
-            onChange={(e) => handleServiceNameChange(e.target.value)}
-            className={`w-full px-3 py-2 border rounded-md ${
-              serviceNameError ? 'border-red-500' : 'border-gray-300'
-            } focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base`}
-          />
-          {serviceNameError && (
-            <p className="mt-1 text-sm text-red-600 flex items-center space-x-1">
-              <span className="text-red-500">⚠</span>
-              <span>{serviceNameError}</span>
-            </p>
-          )}
-        </div>
-        <button
-          onClick={onRemoveService}
-          className="sm:mt-6 px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors text-sm sm:text-base w-full sm:w-auto"
-          title="このサービスを削除"
-        >
-          削除
-        </button>
-      </div>
-
-      {/* 技術スタック */}
-      <div>
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 gap-2">
-          <label className="block text-sm font-medium text-gray-700">
-            使用技術
-          </label>
-          <button
-            onClick={onAddTechnology}
-            className="px-3 py-1 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors w-full sm:w-auto"
-          >
-            + 技術追加
-          </button>
-        </div>
-
-        {service.technologies.length === 0 ? (
-          <div className="text-center py-4 bg-gray-50 rounded-md border-2 border-dashed border-gray-300">
-            <p className="text-gray-500 text-sm mb-2">技術が追加されていません</p>
+          {/* 技術スタック */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              使用技術
+            </label>
+            
+            {(!editingService?.technologies || editingService.technologies.length === 0) ? (
+              <div className="text-center py-4 bg-gray-50 rounded-md border-2 border-dashed border-gray-300 mb-3">
+                <p className="text-gray-500 text-sm">技術が追加されていません</p>
+              </div>
+            ) : (
+              <div className="space-y-3 mb-3">
+                {editingService.technologies.map((technology) => (
+                  <TechnologyInput
+                    key={technology.id}
+                    technology={technology}
+                    availableTechnologies={availableTechnologies}
+                    onChange={(updatedTechnology) => updateTechnology(technology.id, updatedTechnology)}
+                    onRemove={() => removeTechnology(technology.id)}
+                  />
+                ))}
+              </div>
+            )}
+            
+            {/* 技術を追加ボタン */}
             <button
-              onClick={onAddTechnology}
-              className="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors"
+              onClick={addTechnology}
+              className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors text-sm"
             >
-              技術を追加
+              + 技術を追加
             </button>
           </div>
-        ) : (
-          <div className="space-y-3">
-            {service.technologies.map((technology) => (
-              <TechnologyInput
-                key={technology.id}
-                technology={technology}
-                availableTechnologies={availableTechnologies}
-                onChange={(updatedTechnology) => onUpdateTechnology(technology.id, updatedTechnology)}
-                onRemove={() => onRemoveTechnology(technology.id)}
-              />
-            ))}
-          </div>
-        )}
+        </div>
+      </div>
+
+      {/* 右側：サービスリスト */}
+      <div className="space-y-4">
+        <div className="bg-white border border-gray-200 rounded-lg p-4">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            サービス一覧 ({services.length})
+          </h3>
+          
+          {services.length === 0 ? (
+            <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+              <p className="text-gray-500 text-sm">まだサービスがありません</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {services.map((service, index) => (
+                <div
+                  key={service.id}
+                  onClick={() => selectService(index)}
+                  className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                    editingIndex === index
+                      ? 'border-blue-500 bg-blue-50'
+                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-gray-900 truncate">
+                        {service.name || '(名前なし)'}
+                      </h4>
+                      <p className="text-xs text-gray-500 mt-1">
+                        技術: {service.technologies.length}件
+                      </p>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeService(index);
+                      }}
+                      className="ml-2 px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors flex-shrink-0"
+                      title="このサービスを削除"
+                    >
+                      削除
+                    </button>
+                  </div>
+                  
+                  {/* 技術一覧のプレビュー */}
+                  {service.technologies.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-gray-200">
+                      <div className="flex flex-wrap gap-1">
+                        {service.technologies.slice(0, 3).map((tech) => (
+                          <span
+                            key={tech.id}
+                            className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-700"
+                          >
+                            {tech.name || '?'}
+                            {tech.currentVersion && ` ${tech.currentVersion}`}
+                          </span>
+                        ))}
+                        {service.technologies.length > 3 && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-500">
+                            +{service.technologies.length - 3}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {/* サービスを追加ボタン */}
+          <button
+            onClick={addNewService}
+            className="w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors text-sm"
+          >
+            + サービスを追加
+          </button>
+        </div>
       </div>
     </div>
   );

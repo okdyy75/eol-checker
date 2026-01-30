@@ -111,19 +111,11 @@ describe('validation', () => {
       expect(result.errors).toEqual([]);
     });
 
-    it('空の配列の場合はエラーを返す', () => {
+    it('空の配列の場合はisValid: trueを返す', () => {
       const result = validateForm([]);
       
-      expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('少なくとも1つのサービスを追加してください');
-    });
-
-    it('nullまたはundefinedの場合はエラーを返す', () => {
-      const result1 = validateForm(null as any);
-      const result2 = validateForm(undefined as any);
-      
-      expect(result1.isValid).toBe(false);
-      expect(result2.isValid).toBe(false);
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toEqual([]);
     });
 
     it('無効なサービス名の場合はエラーを返す', () => {
@@ -138,7 +130,7 @@ describe('validation', () => {
       expect(result.errors).toContain('サービス1: サービス名を入力してください');
     });
 
-    it('技術が空の場合はエラーを返す', () => {
+    it('技術が空の場合でもisValid: trueを返す', () => {
       const serviceWithoutTech = {
         ...validService,
         technologies: []
@@ -146,8 +138,8 @@ describe('validation', () => {
       
       const result = validateForm([serviceWithoutTech]);
       
-      expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('サービス1: 少なくとも1つの技術を追加してください');
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toEqual([]);
     });
 
     it('無効な技術名の場合はエラーを返す', () => {
@@ -209,11 +201,10 @@ describe('validation', () => {
       const result = validateForm(multipleErrorServices);
       
       expect(result.isValid).toBe(false);
-      expect(result.errors.length).toBeGreaterThan(1);
+      expect(result.errors.length).toBeGreaterThanOrEqual(3);
       expect(result.errors).toContain('サービス1: サービス名を入力してください');
       expect(result.errors).toContain('サービス1 技術1: 技術名を入力してください');
       expect(result.errors).toContain('サービス1 技術1: バージョンを入力してください');
-      expect(result.errors).toContain('サービス2: 少なくとも1つの技術を追加してください');
     });
 
     it('複数のサービスと技術がある場合も正しく検証する', () => {

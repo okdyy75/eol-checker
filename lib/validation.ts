@@ -112,22 +112,12 @@ export function createFieldValidationResult(error: string | null): FieldValidati
 export function validateForm(services: any[]): ValidationResult {
   const errors: string[] = [];
   
-  if (!services || services.length === 0) {
-    errors.push(generateErrorMessage('サービス', 'noServices'));
-    return { isValid: false, errors };
-  }
-  
   for (let i = 0; i < services.length; i++) {
     const service = services[i];
     
     const serviceNameError = validateServiceName(service.name);
     if (serviceNameError) {
       errors.push(`サービス${i + 1}: ${serviceNameError}`);
-    }
-    
-    if (!service.technologies || service.technologies.length === 0) {
-      errors.push(`サービス${i + 1}: ${generateErrorMessage('技術', 'noTechnologies')}`);
-      continue;
     }
     
     for (let j = 0; j < service.technologies.length; j++) {
