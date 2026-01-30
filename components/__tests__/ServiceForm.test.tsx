@@ -215,7 +215,7 @@ describe('ServiceForm', () => {
       fireEvent.click(addButton);
     });
     
-    // 新規サービスが追加されたことを確認
+    // 新規サービスが追加されたことを確認（自動でservice2という名前が付き、初期技術フォームが含まれる）
     expect(mockOnServicesChange).toHaveBeenCalledWith([
       expect.objectContaining({
         id: 'service-1',
@@ -224,8 +224,14 @@ describe('ServiceForm', () => {
       }),
       expect.objectContaining({
         id: expect.any(String),
-        name: '',
-        technologies: []
+        name: 'service2',
+        technologies: [
+          expect.objectContaining({
+            id: expect.any(String),
+            name: '',
+            currentVersion: ''
+          })
+        ]
       })
     ]);
   });

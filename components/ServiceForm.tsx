@@ -97,10 +97,17 @@ export default function ServiceForm({ services, onServicesChange }: ServiceFormP
 
   // 新規サービスを追加
   const addNewService = () => {
+    const serviceNumber = services.length + 1;
     const newService: Service = {
       id: `service-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      name: '',
-      technologies: []
+      name: `service${serviceNumber}`,
+      technologies: [
+        {
+          id: `tech-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          name: '',
+          currentVersion: ''
+        }
+      ]
     };
     onServicesChange([...services, newService]);
     setEditingIndex(services.length); // 新規追加したサービスを編集対象に
