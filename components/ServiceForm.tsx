@@ -39,19 +39,7 @@ export default function ServiceForm({ services, onServicesChange }: ServiceFormP
     loadTechnologies();
   }, []);
 
-  // 初期表示時に1つの空のサービスを作成（初回のみ）
-  const hasInitialized = useRef(false);
-  useEffect(() => {
-    if (!isLoading && services.length === 0 && !hasInitialized.current) {
-      hasInitialized.current = true;
-      const initialService: Service = {
-        id: `service-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        name: '',
-        technologies: []
-      };
-      onServicesChange([initialService]);
-    }
-  }, [isLoading, services.length, onServicesChange]);
+
 
   // 現在編集中のサービスを取得
   const editingService = services[editingIndex] || services[0];
@@ -162,63 +150,72 @@ export default function ServiceForm({ services, onServicesChange }: ServiceFormP
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* 左側：入力フォーム */}
       <div className="space-y-4">
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">
-              サービスを編集
-            </h3>
-            <span className="text-sm text-gray-500">
-              {editingIndex + 1} / {services.length}
-            </span>
+        {services.length === 0 ? (
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
+            <p className="text-gray-500 mb-4">まだサービスがありません</p>
+            <p className="text-gray-400 text-sm mb-4">
+              右の「サービスを追加」ボタンから新しいサービスを作成してください
+            </p>
           </div>
-          
-          {/* サービス名入力 */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              サービス名
-            </label>
-            <input
-              type="text"
-              placeholder="サービス名を入力（例: マイクロサービスA、Webアプリ）"
-              value={editingService?.name || ''}
-              onChange={(e) => updateServiceName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
-            />
-          </div>
+        ) : (
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-800">
+                サービスを編集
+              </h3>
+              <span className="text-sm text-gray-500">
+                {editingIndex + 1} / {services.length}
+              </span>
+            </div>
+            
+            {/* サービス名入力 */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                サービス名
+              </label>
+              <input
+                type="text"
+                placeholder="サービス名を入力（例: マイクロサービスA、Webアプリ）"
+                value={editingService?.name || ''}
+                onChange={(e) => updateServiceName(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+              />
+            </div>
 
-          {/* 技術スタック */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              使用技術
-            </label>
-            
-            {(!editingService?.technologies || editingService.technologies.length === 0) ? (
-              <div className="text-center py-4 bg-gray-50 rounded-md border-2 border-dashed border-gray-300 mb-3">
-                <p className="text-gray-500 text-sm">技術が追加されていません</p>
-              </div>
-            ) : (
-              <div className="space-y-3 mb-3">
-                {editingService.technologies.map((technology) => (
-                  <TechnologyInput
-                    key={technology.id}
-                    technology={technology}
-                    availableTechnologies={availableTechnologies}
-                    onChange={(updatedTechnology) => updateTechnology(technology.id, updatedTechnology)}
-                    onRemove={() => removeTechnology(technology.id)}
-                  />
-                ))}
-              </div>
-            )}
-            
-            {/* 技術を追加ボタン */}
-            <button
-              onClick={addTechnology}
-              className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors text-sm"
-            >
-              + 技術を追加
-            </button>
+            {/* 技術スタック */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                使用技術
+              </label>
+              
+              {(!editingService?.technologies || editingService.technologies.length === 0) ? (
+                <div className="text-center py-4 bg-gray-50 rounded-md border-2 border-dashed border-gray-300 mb-3">
+                  <p className="text-gray-500 text-sm">技術が追加されていません</p>
+                </div>
+              ) : (
+                <div className="space-y-3 mb-3">
+                  {editingService.technologies.map((technology) => (
+                    <TechnologyInput
+                      key={technology.id}
+                      technology={technology}
+                      availableTechnologies={availableTechnologies}
+                      onChange={(updatedTechnology) => updateTechnology(technology.id, updatedTechnology)}
+                      onRemove={() => removeTechnology(technology.id)}
+                    />
+                  ))}
+                </div>
+              )}
+              
+              {/* 技術を追加ボタン */}
+              <button
+                onClick={addTechnology}
+                className="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors text-sm"
+              >
+                + 技術を追加
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* 右側：サービスリスト */}
