@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Technology, EOLDataMap } from '@/lib/types';
-import { validateTechnologyNameField, validateVersionField } from '@/lib/validation';
+import { validateTechnologyName, validateVersion } from '@/lib/validation';
 import { getVersionsForTechnology } from '@/lib/eol-data';
 
 interface TechnologyInputProps {
@@ -42,8 +42,7 @@ export default function TechnologyInput({
     onChange({ ...technology, name: value });
     
     // バリデーション
-    const validation = validateTechnologyNameField(value);
-    setTechNameError(validation.error);
+    setTechNameError(validateTechnologyName(value));
     
     // オートコンプリートのフィルタリング
     if (value.trim()) {
@@ -64,8 +63,7 @@ export default function TechnologyInput({
     onChange({ ...technology, currentVersion: value });
     
     // バリデーション
-    const validation = validateVersionField(value);
-    setVersionError(validation.error);
+    setVersionError(validateVersion(value));
     
     // バージョンsuggestのフィルタリング
     if (value.trim() && availableVersions.length > 0) {

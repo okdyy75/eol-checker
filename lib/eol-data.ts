@@ -91,52 +91,6 @@ export function clearEOLDataCache(): void {
 }
 
 /**
- * キャッシュされたEOLデータを同期的に取得する
- * 
- * loadEOLData() が事前に呼び出されてキャッシュが存在する場合のみ使用可能です。
- * キャッシュが存在しない場合は null を返します。
- * 
- * @returns キャッシュされたEOLデータ、またはnull
- */
-export function getCachedEOLData(): EOLDataMap | null {
-  return eolDataCache;
-}
-
-/**
- * 技術名が存在するかチェックする
- * 
- * @param eolData EOLデータマップ
- * @param productName チェックする技術名
- * @returns 技術名が存在する場合 true
- */
-export function hasEOLProduct(eolData: EOLDataMap, productName: string): boolean {
-  return productName in eolData;
-}
-
-/**
- * 複数の技術名を一度に検索する
- * 
- * @param eolData EOLデータマップ
- * @param productNames 検索する技術名の配列
- * @returns 見つかった製品情報のマップ（存在しない技術は含まれない）
- */
-export function findMultipleEOLProducts(
-  eolData: EOLDataMap, 
-  productNames: string[]
-): Record<string, EOLProduct> {
-  const result: Record<string, EOLProduct> = {};
-  
-  for (const productName of productNames) {
-    const product = findEOLProduct(eolData, productName);
-    if (product) {
-      result[productName] = product;
-    }
-  }
-  
-  return result;
-}
-
-/**
  * 特定の技術の利用可能なバージョンリストを取得
  * 
  * @param eolData EOLデータマップ

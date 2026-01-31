@@ -1,41 +1,27 @@
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ServiceForm from '../ServiceForm';
-import { Service } from '@/lib/types';
+import { Service, EOLDataMap } from '@/lib/types';
 
-// EOLデータの読み込みをモック
-jest.mock('@/lib/eol-data', () => ({
-  loadEOLData: jest.fn().mockResolvedValue({
-    'python': {
-      productName: 'python',
-      cycles: [
-        { cycle: '3.9', releaseDate: '2020-10-05', eol: '2025-10-05' },
-        { cycle: '3.10', releaseDate: '2021-10-04', eol: '2026-10-04' }
-      ]
-    },
-    'nodejs': {
-      productName: 'nodejs',
-      cycles: [
-        { cycle: '18', releaseDate: '2022-04-19', eol: '2025-04-30' },
-        { cycle: '20', releaseDate: '2023-04-18', eol: '2026-04-30' }
-      ]
-    }
-  }),
-  getAvailableTechnologies: jest.fn().mockReturnValue(['python', 'nodejs', 'react']),
-  getVersionsForTechnology: jest.fn().mockImplementation((eolData, productName) => {
-    if (!eolData || !productName) return [];
-    const product = eolData[productName];
-    if (!product || !product.cycles) return [];
-    return product.cycles.map((cycle: { cycle: string }) => cycle.cycle).sort((a: string, b: string) => {
-      const numA = parseFloat(a);
-      const numB = parseFloat(b);
-      if (!isNaN(numA) && !isNaN(numB)) {
-        return numB - numA;
-      }
-      return b.localeCompare(a);
-    });
-  })
-}));
+// モックEOLデータ
+const mockEOLData: EOLDataMap = {
+  'python': {
+    productName: 'python',
+    cycles: [
+      { cycle: '3.9', releaseDate: '2020-10-05', eol: '2025-10-05' },
+      { cycle: '3.10', releaseDate: '2021-10-04', eol: '2026-10-04' }
+    ]
+  },
+  'nodejs': {
+    productName: 'nodejs',
+    cycles: [
+      { cycle: '18', releaseDate: '2022-04-19', eol: '2025-04-30' },
+      { cycle: '20', releaseDate: '2023-04-18', eol: '2026-04-30' }
+    ]
+  }
+};
+
+const mockAvailableTechnologies = ['python', 'nodejs', 'react'];
 
 describe('ServiceForm', () => {
   const mockOnServicesChange = jest.fn();
@@ -44,12 +30,16 @@ describe('ServiceForm', () => {
     jest.clearAllMocks();
   });
 
-  it('ローディング状態を表示する', async () => {
-    render(<ServiceForm services={[]} onServicesChange={mockOnServicesChange} />);
-    
-    // ローディング状態の確認
-    expect(screen.getByText('技術データを読み込み中...')).toBeInTheDocument();
-  });
+  const renderServiceForm = (services: Service[] = []) => {
+    return render(
+      <ServiceForm 
+        services={services} 
+        onServicesChange={mockOnServicesChange}
+        availableTechnologies={mockAvailableTechnologies}
+        eolData={mockEOLData}
+      />
+    );
+  };
 
   it('既存のサービスがある場合はそれを表示する', async () => {
     const services: Service[] = [
@@ -60,9 +50,7 @@ describe('ServiceForm', () => {
       }
     ];
     
-    await act(async () => {
-      render(<ServiceForm services={services} onServicesChange={mockOnServicesChange} />);
-    });
+    renderServiceForm(services);
     
     // サービス名が入力されていることを確認
     const serviceNameInput = screen.getByPlaceholderText(/サービス名を入力/);
@@ -81,9 +69,7 @@ describe('ServiceForm', () => {
       }
     ];
     
-    await act(async () => {
-      render(<ServiceForm services={services} onServicesChange={mockOnServicesChange} />);
-    });
+    renderServiceForm(services);
     
     const serviceNameInput = screen.getByPlaceholderText(/サービス名を入力/);
     
@@ -110,9 +96,7 @@ describe('ServiceForm', () => {
       }
     ];
     
-    await act(async () => {
-      render(<ServiceForm services={services} onServicesChange={mockOnServicesChange} />);
-    });
+    renderServiceForm(services);
     
     const addTechButton = screen.getByText('+ 技術を追加');
     
@@ -150,9 +134,7 @@ describe('ServiceForm', () => {
       }
     ];
     
-    await act(async () => {
-      render(<ServiceForm services={services} onServicesChange={mockOnServicesChange} />);
-    });
+    renderServiceForm(services);
     
     // 削除ボタンをクリック（最初のサービスの削除ボタン）
     const deleteButtons = screen.getAllByText('削除');
@@ -190,9 +172,7 @@ describe('ServiceForm', () => {
       }
     ];
     
-    await act(async () => {
-      render(<ServiceForm services={services} onServicesChange={mockOnServicesChange} />);
-    });
+    renderServiceForm(services);
     
     // 2番目のサービスをクリックして選択（親要素のdivをクリック）
     const service2Card = screen.getByText('サービス2').closest('div[class*="cursor-pointer"]');
@@ -217,9 +197,7 @@ describe('ServiceForm', () => {
       }
     ];
     
-    await act(async () => {
-      render(<ServiceForm services={services} onServicesChange={mockOnServicesChange} />);
-    });
+    renderServiceForm(services);
     
     // 新規サービス追加ボタンをクリック
     const addButton = screen.getByText('+ サービスを追加');
@@ -263,9 +241,7 @@ describe('ServiceForm', () => {
       }
     ];
     
-    await act(async () => {
-      render(<ServiceForm services={services} onServicesChange={mockOnServicesChange} />);
-    });
+    renderServiceForm(services);
     
     // 2番目のサービスを選択
     const service2Element = screen.getByText('サービス2').closest('div[class*="border"]');

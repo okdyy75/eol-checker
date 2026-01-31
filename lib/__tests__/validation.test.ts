@@ -3,14 +3,7 @@ import {
   validateTechnologyName,
   validateVersion,
   validateForm,
-  ValidationResult,
-  generateErrorMessage,
-  normalizeInput,
-  isEmpty,
-  validateServiceNameField,
-  validateTechnologyNameField,
-  validateVersionField,
-  FieldValidationResult
+  ValidationResult
 } from '../validation';
 
 describe('validation', () => {
@@ -245,87 +238,4 @@ describe('validation', () => {
     });
   });
 
-  describe('generateErrorMessage', () => {
-    it('適切なエラーメッセージを生成する', () => {
-      expect(generateErrorMessage('サービス名', 'required')).toBe('サービス名を入力してください');
-      expect(generateErrorMessage('技術名', 'empty')).toBe('技術名が空です。値を入力してください');
-      expect(generateErrorMessage('バージョン', 'tooLong', { maxLength: 20 })).toBe('バージョンが長すぎます。20文字以内で入力してください');
-      expect(generateErrorMessage('バージョン', 'invalidVersion')).toBe('バージョンは英数字、ドット、ハイフン、アンダースコアのみ使用できます');
-    });
-
-    it('未定義のエラータイプの場合はデフォルトメッセージを返す', () => {
-      expect(generateErrorMessage('フィールド', 'unknownError')).toBe('フィールドにエラーがあります');
-    });
-  });
-
-  describe('normalizeInput', () => {
-    it('前後の空白文字を除去する', () => {
-      expect(normalizeInput('  test  ')).toBe('test');
-      expect(normalizeInput('\t\ntest\t\n')).toBe('test');
-    });
-
-    it('空文字列やnullの場合は空文字列を返す', () => {
-      expect(normalizeInput('')).toBe('');
-      expect(normalizeInput(null as any)).toBe('');
-      expect(normalizeInput(undefined as any)).toBe('');
-    });
-  });
-
-  describe('isEmpty', () => {
-    it('空の値を正しく判定する', () => {
-      expect(isEmpty('')).toBe(true);
-      expect(isEmpty('   ')).toBe(true);
-      expect(isEmpty('\t\n')).toBe(true);
-      expect(isEmpty(null as any)).toBe(true);
-      expect(isEmpty(undefined as any)).toBe(true);
-    });
-
-    it('値がある場合はfalseを返す', () => {
-      expect(isEmpty('test')).toBe(false);
-      expect(isEmpty('  test  ')).toBe(false);
-      expect(isEmpty('0')).toBe(false);
-    });
-  });
-
-  describe('validateServiceNameField', () => {
-    it('有効な場合はisValid: trueを返す', () => {
-      const result = validateServiceNameField('Valid Service');
-      expect(result.isValid).toBe(true);
-      expect(result.error).toBeNull();
-    });
-
-    it('無効な場合はisValid: falseとエラーメッセージを返す', () => {
-      const result = validateServiceNameField('');
-      expect(result.isValid).toBe(false);
-      expect(result.error).toBe('サービス名を入力してください');
-    });
-  });
-
-  describe('validateTechnologyNameField', () => {
-    it('有効な場合はisValid: trueを返す', () => {
-      const result = validateTechnologyNameField('python');
-      expect(result.isValid).toBe(true);
-      expect(result.error).toBeNull();
-    });
-
-    it('無効な場合はisValid: falseとエラーメッセージを返す', () => {
-      const result = validateTechnologyNameField('');
-      expect(result.isValid).toBe(false);
-      expect(result.error).toBe('技術名を入力してください');
-    });
-  });
-
-  describe('validateVersionField', () => {
-    it('有効な場合はisValid: trueを返す', () => {
-      const result = validateVersionField('3.9');
-      expect(result.isValid).toBe(true);
-      expect(result.error).toBeNull();
-    });
-
-    it('無効な場合はisValid: falseとエラーメッセージを返す', () => {
-      const result = validateVersionField('');
-      expect(result.isValid).toBe(false);
-      expect(result.error).toBe('バージョンを入力してください');
-    });
-  });
 });

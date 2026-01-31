@@ -1,46 +1,23 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { Service, Technology, EOLDataMap } from '@/lib/types';
-import { loadEOLData, getAvailableTechnologies } from '@/lib/eol-data';
 import TechnologyInput from './TechnologyInput';
 
 interface ServiceFormProps {
   services: Service[];
   onServicesChange: (services: Service[]) => void;
+  availableTechnologies: string[];
+  eolData: EOLDataMap;
 }
 
-export default function ServiceForm({ services, onServicesChange }: ServiceFormProps) {
-  const [availableTechnologies, setAvailableTechnologies] = useState<string[]>([]);
-  const [eolData, setEolData] = useState<EOLDataMap | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  
-  // 現在編集中のサービスのインデックス
+export default function ServiceForm({ 
+  services, 
+  onServicesChange, 
+  availableTechnologies, 
+  eolData 
+}: ServiceFormProps) {
   const [editingIndex, setEditingIndex] = useState<number>(0);
-
-  // EOLデータの読み込み
-  useEffect(() => {
-    const loadTechnologies = async () => {
-      try {
-        setIsLoading(true);
-        setLoadError(null);
-        const data = await loadEOLData();
-        setEolData(data);
-        const technologies = getAvailableTechnologies(data);
-        setAvailableTechnologies(technologies);
-      } catch (error) {
-        console.error('Failed to load EOL data:', error);
-        setLoadError('技術データの読み込みに失敗しました。ページを再読み込みしてください。');
-        setAvailableTechnologies([]);
-        setEolData(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadTechnologies();
-  }, []);
 
 
 
@@ -133,28 +110,6 @@ export default function ServiceForm({ services, onServicesChange }: ServiceFormP
   const selectService = (index: number) => {
     setEditingIndex(index);
   };
-
-  if (isLoading) {
-    return (
-      <div className="p-4 bg-gray-50 rounded-lg">
-        <div className="flex items-center justify-center space-x-2">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-          <span className="text-gray-600">技術データを読み込み中...</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (loadError) {
-    return (
-      <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-        <div className="flex items-center space-x-2">
-          <span className="text-red-500">⚠</span>
-          <span className="text-red-700">{loadError}</span>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

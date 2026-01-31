@@ -9,9 +9,6 @@ import {
   findEOLProduct, 
   getAvailableTechnologies, 
   clearEOLDataCache,
-  getCachedEOLData,
-  hasEOLProduct,
-  findMultipleEOLProducts,
   getVersionsForTechnology
 } from '../eol-data';
 import { EOLDataMap, EOLProduct } from '../types';
@@ -183,61 +180,6 @@ describe('EOL Data Management', () => {
       const result = await loadEOLData();
       expect(global.fetch).toHaveBeenCalledTimes(2);
       expect(result).toEqual(newMockData);
-    });
-  });
-
-  describe('getCachedEOLData', () => {
-    it('should return null when no cache exists', () => {
-      const result = getCachedEOLData();
-      expect(result).toBeNull();
-    });
-
-    it('should return cached data when cache exists', async () => {
-      // データを読み込んでキャッシュに保存
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockEOLData
-      });
-
-      await loadEOLData();
-      
-      const result = getCachedEOLData();
-      expect(result).toEqual(mockEOLData);
-    });
-  });
-
-  describe('hasEOLProduct', () => {
-    it('should return true for existing product', () => {
-      const result = hasEOLProduct(mockEOLData, 'python');
-      expect(result).toBe(true);
-    });
-
-    it('should return false for non-existing product', () => {
-      const result = hasEOLProduct(mockEOLData, 'nonexistent');
-      expect(result).toBe(false);
-    });
-  });
-
-  describe('findMultipleEOLProducts', () => {
-    it('should find multiple existing products', () => {
-      const result = findMultipleEOLProducts(mockEOLData, ['python', 'nodejs']);
-      expect(result).toEqual({
-        python: mockEOLData.python,
-        nodejs: mockEOLData.nodejs
-      });
-    });
-
-    it('should skip non-existing products', () => {
-      const result = findMultipleEOLProducts(mockEOLData, ['python', 'nonexistent', 'nodejs']);
-      expect(result).toEqual({
-        python: mockEOLData.python,
-        nodejs: mockEOLData.nodejs
-      });
-    });
-
-    it('should return empty object when no products found', () => {
-      const result = findMultipleEOLProducts(mockEOLData, ['nonexistent1', 'nonexistent2']);
-      expect(result).toEqual({});
     });
   });
 

@@ -1,143 +1,45 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import { Service, EOLDataMap } from '@/lib/types';
+import { useState, useCallback } from 'react';
 import ServiceForm from '@/components/ServiceForm';
 import EOLGanttChart from '@/components/EOLGanttChart';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { loadEOLData } from '@/lib/eol-data';
-import { 
-  getURLStateFromCurrentURL, 
-  setURLState, 
-  clearURLState,
-  encodeURLState
-} from '@/lib/url-state';
+import { useEOLData } from '@/lib/hooks/use-eol-data';
+import { useURLState } from '@/lib/hooks/use-url-state';
 
-/**
- * メインページコンポーネント
- * 
- * 実装する要件:
- * - 1.4: すべての入力データをURL_Stateとして保存する
- * - 4.2: ユーザーがデータを入力または変更した場合、URLを自動的に更新する
- */
 export default function Home() {
-  // 状態管理
-  const [services, setServices] = useState<Service[]>([]);
-  const [eolData, setEolData] = useState<EOLDataMap>({});
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { eolData, availableTechnologies, isLoading, error: eolError } = useEOLData();
+  const { services, setServices, clearServices, getShareableURL, isURLLoaded, urlError } = useURLState();
   const [notification, setNotification] = useState<string | null>(null);
 
-  // 通知を表示するヘルパー関数
   const showNotification = useCallback((message: string) => {
     setNotification(message);
     setTimeout(() => setNotification(null), 5000);
   }, []);
 
-  // 初期化処理
-  useEffect(() => {
-    const initializeApp = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        // 1. EOLデータを読み込み
-        const loadedEOLData = await loadEOLData();
-        setEolData(loadedEOLData);
-
-        // 2. URL状態を確認
-        const urlStateResult = getURLStateFromCurrentURL();
-        let initialServices: Service[] = [];
-
-        if (urlStateResult.success && urlStateResult.data) {
-          // URL状態が存在する場合はそれを使用
-          initialServices = urlStateResult.data.services;
-        }
-
-        setServices(initialServices);
-
-      } catch (err) {
-        console.error('アプリケーションの初期化に失敗しました:', err);
-        setError('アプリケーションの初期化に失敗しました。ページを再読み込みしてください。');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    initializeApp();
-  }, []);
-
-  // サービス変更時の処理
-  const handleServicesChange = useCallback((newServices: Service[]) => {
+  const handleServicesChange = useCallback((newServices: typeof services) => {
     setServices(newServices);
+  }, [setServices]);
 
-    // URL状態を更新（要件 1.4, 4.2）
-    if (newServices.length > 0) {
-      const urlState = {
-        version: 1,
-        services: newServices
-      };
-      
-      const urlResult = setURLState(urlState);
-      if (!urlResult.success) {
-        console.warn('URL状態の更新に失敗しました:', urlResult.error);
-        if (urlResult.error?.type === 'URL_TOO_LONG') {
-          showNotification('データが大きすぎてURLに保存できません。');
-        }
-      }
-    } else {
-      // サービスが空の場合はURL状態をクリア
-      clearURLState();
-    }
-  }, [showNotification]);
-
-  // データクリア機能
   const handleClearData = useCallback(() => {
     if (window.confirm('すべてのデータをクリアしますか？この操作は元に戻せません。')) {
-      // 状態をクリア
-      setServices([]);
-      
-      // URL状態をクリア
-      clearURLState();
-      
+      clearServices();
       showNotification('すべてのデータがクリアされました。');
     }
-  }, [showNotification]);
+  }, [clearServices, showNotification]);
 
-  // URLシェア機能
   const handleCopyURL = useCallback(() => {
     try {
-      // 現在の状態からURLを組み立て
-      const urlState = {
-        version: 1,
-        services: services
-      };
-      
-      const encoded = encodeURLState(urlState);
-      
-      // ベースURLを取得
-      const baseUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
-      
-      // 人間が読みやすい形式でURLを構築
-      const shareUrl = encoded ? `${baseUrl}?s=${encoded}` : baseUrl;
-      
-      // クリップボードにコピー
+      const shareUrl = getShareableURL();
       navigator.clipboard.writeText(shareUrl)
-        .then(() => {
-          showNotification('URLをクリップボードにコピーしました。');
-        })
-        .catch((err) => {
-          console.error('URLのコピーに失敗しました:', err);
-          showNotification('URLのコピーに失敗しました。');
-        });
-    } catch (error) {
-      console.error('URLの生成に失敗しました:', error);
+        .then(() => showNotification('URLをクリップボードにコピーしました。'))
+        .catch(() => showNotification('URLのコピーに失敗しました。'));
+    } catch {
       showNotification('URLの生成に失敗しました。');
     }
-  }, [services, showNotification]);
+  }, [getShareableURL, showNotification]);
 
-  // ローディング状態
-  if (isLoading) {
+  if (isLoading || !isURLLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -148,14 +50,13 @@ export default function Home() {
     );
   }
 
-  // エラー状態
-  if (error) {
+  if (eolError || urlError) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center max-w-md mx-auto p-6">
           <div className="text-red-600 text-6xl mb-4">⚠️</div>
           <h2 className="text-xl font-semibold text-gray-900 mb-2">エラーが発生しました</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <p className="text-gray-600 mb-4">{eolError || urlError}</p>
           <button
             onClick={() => window.location.reload()}
             className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
@@ -170,7 +71,6 @@ export default function Home() {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-50">
-        {/* ヘッダー */}
         <header className="bg-white shadow-sm border-b">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-4 gap-4">
@@ -181,14 +81,11 @@ export default function Home() {
                 </p>
               </div>
               
-              {/* アクションボタン */}
               {services.length > 0 && (
                 <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                  {/* URLコピーボタン */}
                   <button
                     onClick={handleCopyURL}
                     className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors text-sm font-medium flex items-center justify-center gap-2"
-                    title="URLをクリップボードにコピーして共有"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -196,11 +93,9 @@ export default function Home() {
                     URLコピー
                   </button>
                   
-                  {/* データクリアボタン */}
                   <button
                     onClick={handleClearData}
                     className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
-                    title="すべてのデータをクリア"
                   >
                     データクリア
                   </button>
@@ -210,7 +105,6 @@ export default function Home() {
           </div>
         </header>
 
-        {/* 通知 */}
         {notification && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
             <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
@@ -228,21 +122,20 @@ export default function Home() {
           </div>
         )}
 
-        {/* メインコンテンツ */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
           <div className="flex flex-col gap-4 sm:gap-6 lg:gap-8">
-            {/* サービスフォーム */}
             <div>
               <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">サービスと技術スタック</h2>
                 <ServiceForm 
                   services={services} 
-                  onServicesChange={handleServicesChange} 
+                  onServicesChange={handleServicesChange}
+                  availableTechnologies={availableTechnologies}
+                  eolData={eolData}
                 />
               </div>
             </div>
 
-            {/* ガントチャート */}
             <div>
               <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
                 <EOLGanttChart 
@@ -253,7 +146,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* フッター情報 */}
           <footer className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-gray-200">
             <div className="text-center text-xs sm:text-sm text-gray-500">
               <p>
