@@ -282,5 +282,25 @@ describe('EOL Data Management', () => {
       const result = getVersionsForTechnology(numericData, 'test');
       expect(result).toEqual(['10.0', '2.0', '1.0']);
     });
+
+    it('should sort Go versions correctly (semantic versioning)', () => {
+      const goData: EOLDataMap = {
+        'go': {
+          productName: 'go',
+          cycles: [
+            { cycle: '1.25', releaseDate: '2025-08-12', eol: false },
+            { cycle: '1.24', releaseDate: '2025-02-11', eol: false },
+            { cycle: '1.23', releaseDate: '2024-08-13', eol: '2025-08-12' },
+            { cycle: '1.22', releaseDate: '2024-02-06', eol: '2025-02-11' },
+            { cycle: '1.9', releaseDate: '2017-10-04', eol: '2018-08-24' },
+            { cycle: '1.8', releaseDate: '2017-08-24', eol: '2018-02-16' },
+            { cycle: '1', releaseDate: '2012-01-01', eol: '2013-12-01' }
+          ]
+        }
+      };
+      const result = getVersionsForTechnology(goData, 'go');
+      // 1.25 > 1.24 > 1.23 > 1.22 > ... > 1.9 > 1.8 > ... > 1
+      expect(result).toEqual(['1.25', '1.24', '1.23', '1.22', '1.9', '1.8', '1']);
+    });
   });
 });

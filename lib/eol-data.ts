@@ -156,12 +156,22 @@ export function getVersionsForTechnology(
   return product.cycles
     .map(cycle => cycle.cycle)
     .sort((a, b) => {
-      // 数値として比較可能な場合は数値順、そうでない場合は文字列順
-      const numA = parseFloat(a);
-      const numB = parseFloat(b);
-      if (!isNaN(numA) && !isNaN(numB)) {
-        return numB - numA;
+      // セマンティックバージョニングに対応した比較
+      const partsA = a.split('.').map(Number);
+      const partsB = b.split('.').map(Number);
+      
+      // 各パートを順番に比較
+      const maxLength = Math.max(partsA.length, partsB.length);
+      for (let i = 0; i < maxLength; i++) {
+        const numA = partsA[i] || 0;
+        const numB = partsB[i] || 0;
+        
+        if (numB !== numA) {
+          return numB - numA;
+        }
       }
-      return b.localeCompare(a);
+      
+      // すべてのパートが同じ場合は文字列長で比較（より詳細なバージョンを優先）
+      return b.length - a.length;
     });
 }
