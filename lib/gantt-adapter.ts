@@ -288,10 +288,11 @@ export function getRelevantCycles(cycles: EOLCycle[], currentVersion: string): E
     return [];
   }
   
-  // 有効なサイクル（リリース日とEOL日があるもの）をフィルタリング
+  // 有効なサイクル（リリース日があるもの）をフィルタリング
+  // eolがfalseの場合はまだEOLでないバージョンとして有効
   const validCycles = cycles.filter(cycle => 
     cycle.releaseDate && 
-    typeof cycle.eol === 'string'
+    (cycle.eol === false || typeof cycle.eol === 'string')
   );
   
   if (validCycles.length === 0) {
