@@ -15,125 +15,121 @@ EOL Timeline Viewerは、開発中のサービスで使用している言語や�
 - **endoflife.date**: EOL情報を提供する外部APIサービス
 - **Gantt_Chart**: 時系列に沿ってバーで情報を表示するチャート形式
 - **URL_State**: URLパラメータに保存されたアプリケーションの状態
-- **Static_Site**: サーバー側の処理を必要とせず、HTMLやJavaScriptなどの静的ファイルのみで動作するWebサイト
+- **Static_Site**: サーバー側の処理を必要とせず、静的ファイルのみで動作するWebサイト
 - **Build_Time**: アプリケーションのビルドプロセス中に実行される処理のタイミング
 - **Lifecycle_Stage**: バージョンのライフサイクルステージ（current、active、maintenance、eol）
   - **current**: 最新・推奨バージョン（緑色）
   - **active**: アクティブサポート中（青色）
   - **maintenance**: メンテナンスモード（グレー）
   - **eol**: サポート終了（赤色）
-  - 詳細な判定条件は設計書を参照
-- **Segment**: ガントチャート上でバージョンの期間を複数の色で分割表示する機能
 
 ## 機能要件
 
 ### 要件1: サービスとテクノロジーの入力
 
-**ユーザーストーリー:** 開発者として、管理しているサービスとそこで使用している技術スタックを入力したい。そうすることで、EOL情報を追跡できるようになる。
+**ユーザーストーリー:** 
+開発者として、管理しているサービスとそこで使用している技術スタックを入力したい。そうすることで、EOL情報を追跡できるようになる。
 
 #### 受入基準
 
-1. THE System SHALL サービス名を入力するためのフォームフィールドを提供する
-2. THE System SHALL 各サービスに対して複数のTechnologyを追加できる機能を提供する
-3. WHEN ユーザーがTechnologyを追加する場合、THE System SHALL Technology名と現在使用中のVersionを入力できるようにする
-4. THE System SHALL 入力されたすべてのデータをURL_Stateとして保存する
-5. WHEN 無効なデータ（空のサービス名や空のTechnology名）が入力された場合、THE System SHALL エラーメッセージを表示し、データの追加を防止する
-6. THE System SHALL Technology名の入力時にオートコンプリート機能を提供する
-7. THE System SHALL サービスと技術の追加・削除機能を提供する
-8. THE System SHALL すべてのデータをクリアする機能を提供する
+1. THE System SHALL サービスの追加・削除・選択機能を提供する
+2. WHEN ユーザーが新規サービスを追加する場合、THE System SHALL 自動的に`service{N}`形式の連番サービス名を付与する（例：service1, service2, service3）
+3. WHEN 新規サービスを追加した場合、THE System SHALL 空の技術入力フォームを1つ自動的に表示する
+4. THE System SHALL 各サービスに複数のTechnology（名前とバージョン）を追加・削除できる機能を提供する
+5. THE System SHALL Technology名の入力時にオートコンプリート機能を提供する
+6. THE System SHALL Technology名選択時に、その技術の利用可能なバージョンリストを自動的に表示する
+7. THE System SHALL バージョン入力時に、入力内容に基づいてバージョン候補をフィルタリングする
+8. THE System SHALL サジェスト機能でキーボード操作（矢印キー、Enter、Escape）をサポートする
+9. THE System SHALL 入力されたすべてのデータをURL_Stateとして自動保存する
+10. THE System SHALL 2カラムレイアウト（左：入力フォーム、右：サービスリスト）を提供する
+11. THE System SHALL フォーム入力の変更を即座にサービスリストに反映する（リアルタイム同期）
+12. THE System SHALL 選択中のサービスをサービスリスト上でハイライト表示する
+13. THE System SHALL サービスリストに各サービスの技術プレビュー（最大3件）を表示する
+14. WHEN サービスが0件の場合、THE System SHALL 案内メッセージを表示する
 
 ### 要件2: endoflife.dateからのデータ取得
 
-**ユーザーストーリー:** システム管理者として、最新のEOL情報を自動的に取得したい。そうすることで、手動でデータを更新する必要がなくなる。
+**ユーザーストーリー:** 
+システム管理者として、最新のEOL情報を自動的に取得したい。そうすることで、手動でデータを更新する必要がなくなる。
 
 #### 受入基準
 
-1. WHEN アプリケーションがビルドされる場合、THE System SHALL endoflife.date APIから利用可能なすべてのTechnology情報を取得する
-2. THE System SHALL 各Technologyについて、すべてのVersionとそれぞれのEOL_Dateを取得する
-3. IF APIリクエストが失敗した場合、THEN THE System SHALL エラーをログに記録し、リトライロジックを実行する（最大3回）
-4. THE System SHALL 取得したデータを静的ファイル（public/data/eol-data.json）として保存し、クライアント側で利用できるようにする
-5. THE System SHALL 取得したデータにリリース日、サポート終了日、拡張サポート終了日、LTS情報が含まれる場合、それらを保持する
-6. THE System SHALL データ取得時にAPI制限を避けるため適切な待機時間を設ける
-7. THE System SHALL 取得したデータをキャッシュし、複数回の読み込みを防止する
+1. WHEN アプリケーションがビルドされる場合、THE System SHALL endoflife.date APIから全Technologyの情報を取得する
+2. THE System SHALL 各Technologyの全Versionとライフサイクル情報（リリース日、サポート終了日、EOL日、LTS情報）を取得する
+3. THE System SHALL 取得したデータを静的ファイルとして保存し、クライアント側で利用できるようにする
+4. IF APIリクエストが失敗した場合、THEN THE System SHALL エラーをログに記録し、リトライロジックを実行する
+5. THE System SHALL 取得したデータのすべてのフィールドを保持し、データの完全性を保証する
 
 ### 要件3: ガントチャートによるタイムライン表示
 
-**ユーザーストーリー:** 開発者として、複数のサービスのEOL情報をガントチャート形式で視覚的に確認したい。そうすることで、どのバージョンがいつサポート終了するかを一目で把握できる。
+**ユーザーストーリー:** 
+開発者として、複数のサービスのEOL情報をガントチャート形式で視覚的に確認したい。そうすることで、どのバージョンがいつサポート終了するかを一目で把握できる。
 
 #### 受入基準
 
-1. THE System SHALL 入力されたすべてのServiceとTechnologyをGantt_Chartとして表示する
-2. WHEN Serviceが複数のTechnologyを持つ場合、THE System SHALL 各Technologyを個別の行として表示する
-3. WHEN Technologyに現在のVersionが指定されている場合、THE System SHALL 現在のVersionから最新Versionまでのすべてのバージョンを表示する
-4. THE System SHALL 各Versionのバーを、リリース日からEOL_Dateまでの期間として表示する
-5. THE System SHALL 現在日付を示す垂直線をチャート上に表示する
-6. THE System SHALL バージョンのライフサイクルステージ（current、active、maintenance、eol）を視覚的に区別できるようにする（異なる色で表示）
-7. THE System SHALL 現在使用中のバージョンに特別なマーカー（★）を表示する
-8. WHEN ユーザーがチャート上のバーにホバーした場合、THE System SHALL Version番号、リリース日、EOL_Dateを含む詳細情報を表示する
-9. THE System SHALL サービスごとに独立したガントチャートを表示する
-10. THE System SHALL バージョンのライフサイクルステージを期間ごとに色分けして表示する（セグメント表示）
+1. THE System SHALL 入力されたすべてのServiceとTechnologyをサービスごとに独立したGantt_Chartとして表示する
+2. THE System SHALL 現在のVersionから最新Versionまでのすべてのバージョンを個別の行として表示する
+3. THE System SHALL 各Versionのバーをリリース日からEOL_Dateまでの期間として表示する
+4. THE System SHALL 各Versionのバーをライフサイクルステージごとにセグメント分割し、色分けして表示する
+   - current（緑）: リリース日からLTS開始日まで
+   - active（青）: LTS開始日からサポート終了日まで（またはリリース日からサポート終了日まで）
+   - maintenance（グレー）: サポート終了日からEOL日まで
+   - eol（赤）: EOL日を過ぎたバージョン全体
+5. THE System SHALL 現在使用中のバージョンを明示的にマーカー（★）で表示する
+6. THE System SHALL 現在日付を示す垂直線を表示する
+7. WHEN ユーザーがバーにホバーした場合、THE System SHALL 詳細情報（Version番号、リリース日、EOL_Date、ライフサイクルステージ）を表示する
+8. THE System SHALL ライフサイクルステージの凡例を表示する
+9. THE System SHALL 中間バージョンを含むすべてのバージョンを表示する（バージョンの欠落がないこと）
+10. THE System SHALL 各バージョンのバーの開始日と終了日が、実際のリリース日とEOL日と正確に一致することを保証する
 
 ### 要件4: URL共有機能
 
-**ユーザーストーリー:** チームリーダーとして、設定したEOLタイムラインをチームメンバーと共有したい。そうすることで、全員が同じ情報を確認できる。
+**ユーザーストーリー:** 
+チームリーダーとして、設定したEOLタイムラインをチームメンバーと共有したい。そうすることで、全員が同じ情報を確認できる。
 
 #### 受入基準
 
-1. THE System SHALL すべての入力データ（Service、Technology、Version）をセミコロン区切り形式でURLパラメータとしてエンコードする
-2. THE System SHALL URL形式として `?s=サービス名(技術:バージョン,技術:バージョン);サービス名(技術:バージョン)` を使用する
-3. WHEN ユーザーがデータを入力または変更した場合、THE System SHALL URLを自動的に更新する
-4. WHEN ユーザーがURL_Stateを含むURLにアクセスした場合、THE System SHALL URLからデータをデコードし、アプリケーションの状態を復元する
-5. THE System SHALL URLが最大長制限（2048文字）を超えないように、データを効率的にエンコードする
-6. IF URLのデコードに失敗した場合、THEN THE System SHALL エラーメッセージを表示し、空の状態から開始する
-7. THE System SHALL データが空の場合、URLパラメータをクリアする機能を提供する
-8. THE System SHALL URL長制限を超える場合、ユーザーに通知する
-9. THE System SHALL サービス名、技術名、バージョンに含まれる特殊文字（`:`, `;`, `,`, `(`, `)`）を適切にエスケープする
+1. THE System SHALL すべての入力データをURLパラメータとしてセミコロン区切り形式でエンコードする
+   - フォーマット: `サービス名(技術:バージョン,技術:バージョン);サービス名(技術:バージョン)`
+   - 例: `myapp(python:3.9,nodejs:18.0);api(go:1.20)`
+2. WHEN ユーザーがデータを変更した場合、THE System SHALL URLを自動的に更新する
+3. WHEN ユーザーがURL_Stateを含むURLにアクセスした場合、THE System SHALL アプリケーションの状態を復元する
+4. THE System SHALL 特殊文字（`:`, `;`, `,`, `(`, `)`）を含むサービス名や技術名を適切にエスケープする
+5. WHEN URL長が2048文字を超える場合、THE System SHALL ユーザーに通知する
+6. THE System SHALL 任意の有効なサービスデータセットに対して、エンコード→デコードのラウンドトリップで元のデータと等価なデータを復元する
 
 ### 要件5: レスポンシブデザイン
 
-**ユーザーストーリー:** ユーザーとして、デスクトップでもモバイルデバイスでもEOL情報を確認したい。そうすることで、どこからでもアクセスできる。
+**ユーザーストーリー:** 
+ユーザーとして、デスクトップでもモバイルデバイスでもEOL情報を確認したい。そうすることで、どこからでもアクセスできる。
 
 #### 受入基準
 
 1. THE System SHALL デスクトップ、タブレット、モバイルデバイスで適切に表示される
-2. WHEN 画面幅が狭い場合、THE System SHALL Gantt_Chartを水平スクロール可能にする
+2. THE System SHALL 画面サイズに応じてレイアウトを最適化する
 3. THE System SHALL タッチデバイスでのスクロールとズーム操作をサポートする
-4. WHEN モバイルデバイスで表示される場合、THE System SHALL 入力フォームを縦方向に最適化して表示する
-5. THE System SHALL Tailwind CSSのブレークポイント（sm、md、lg）を使用してレスポンシブレイアウトを実装する
-6. THE System SHALL モバイルデバイスでボタンとフォーム要素を適切なサイズで表示する
 
 ### 要件6: 静的サイト生成
 
-**ユーザーストーリー:** システム管理者として、アプリケーションを静的サイトとしてデプロイしたい。そうすることで、サーバーレスで低コストに運用できる。
+**ユーザーストーリー:** 
+システム管理者として、アプリケーションを静的サイトとしてデプロイしたい。そうすることで、サーバーレスで低コストに運用できる。
 
 #### 受入基準
 
-1. THE System SHALL Next.jsの静的エクスポート機能を使用してビルドされる
+1. THE System SHALL 静的サイトとしてビルドされ、クライアント側でのみ動作する
 2. THE System SHALL ビルド時にすべての必要なデータを取得し、静的ファイルに含める
-3. THE System SHALL クライアント側でのみ動作し、サーバー側の処理を必要としない
-4. THE System SHALL 標準的な静的ホスティングサービス（Netlify、Vercel、GitHub Pagesなど）にデプロイ可能である
-5. THE System SHALL ビルドスクリプトでEOLデータの取得を自動化する
+3. THE System SHALL 標準的な静的ホスティングサービスにデプロイ可能である
 
-### 要件7: エラーハンドリング
+### 要件7: エラーハンドリングとデータ検証
 
-**ユーザーストーリー:** ユーザーとして、エラーが発生した場合に何が問題なのかを理解したい。そうすることで、適切に対処できる。
-
-#### 受入基準
-
-1. WHEN 入力データが無効な場合、THE System SHALL 具体的なエラーメッセージを表示する
-2. WHEN 指定されたTechnologyがendoflife.dateで見つからない場合、THE System SHALL ユーザーに通知し、そのTechnologyをスキップする
-3. WHEN ネットワークエラーやデータ読み込みエラーが発生した場合、THE System SHALL ユーザーフレンドリーなエラーメッセージを表示する
-4. THE System SHALL エラー発生時もアプリケーションがクラッシュせず、部分的に機能し続けるようにする
-5. THE System SHALL アプリケーション初期化時のエラーを適切にハンドリングし、再読み込みオプションを提供する
-6. THE System SHALL URL長制限を超える場合、ユーザーに通知メッセージを表示する
-
-### 要件8: データ検証とセキュリティ
-
-**ユーザーストーリー:** ユーザーとして、入力したデータが適切に検証され、安全に処理されることを期待する。そうすることで、予期しない動作やセキュリティ問題を防げる。
+**ユーザーストーリー:** 
+ユーザーとして、エラーが発生した場合でもアプリケーションが適切に動作し続けることを期待する。そうすることで、安心して利用できる。
 
 #### 受入基準
 
-1. THE System SHALL すべてのユーザー入力に対してバリデーションを実行し、無効なデータの処理を防止する
-2. THE System SHALL URLパラメータのデコード時にスキーマバリデーションを実行する
-3. THE System SHALL XSS攻撃を防ぐため、すべてのユーザー入力を適切にエスケープする
-4. THE System SHALL 予期しないエラーが発生した場合、Error Boundaryでキャッチし、適切なフォールバックUIを表示する
+1. THE System SHALL 不完全なデータ（技術名やバージョンの欠落）を含むURLをデコードする際、不完全な部分をスキップし、有効なデータのみを表示する
+2. THE System SHALL 存在しない技術名を入力された場合、その技術をスキップし、他の技術の表示を継続する
+3. WHEN エラーが発生した場合、THE System SHALL ユーザーフレンドリーなエラーメッセージを表示し、アプリケーションがクラッシュしないようにする
+4. THE System SHALL すべてのユーザー入力を適切にエスケープし、XSS攻撃を防止する
+5. THE System SHALL エラー発生時にコンソールに詳細なログを出力する
+6. THE System SHALL 任意のサービスに対して、複数の技術を追加した場合、それらすべてが保持され取得可能であることを保証する
