@@ -25,6 +25,8 @@ type TaskWithSegments = Task & {
   }>;
 };
 
+const VIEW_SHIFT_MONTHS = 6;
+
 /**
  * EOLGanttChartコンポーネントのProps
  */
@@ -47,6 +49,11 @@ interface EOLGanttChartProps {
  * - 5.2: 画面幅が狭い場合、Gantt_Chartを水平スクロール可能にする
  */
 export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps) {
+  const initialViewDate = useMemo(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth() - VIEW_SHIFT_MONTHS, 1);
+  }, []);
+
   // カスタムタスクリストヘッダー（From/Toカラムを表示しない）
   const TaskListHeaderComponent = useCallback(() => {
     return (
@@ -198,8 +205,9 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
             <Gantt
               tasks={chart.tasks}
               viewMode={ViewMode.Month}
+              viewDate={initialViewDate}
+              preStepsCount={VIEW_SHIFT_MONTHS}
               locale="ja"
-              columnWidth={60}
               listCellWidth="200px"
               rowHeight={50}
               ganttHeight={400}
