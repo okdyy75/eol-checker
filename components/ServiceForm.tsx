@@ -116,21 +116,25 @@ export default function ServiceForm({
       {/* 左側：入力フォーム */}
       <div className="space-y-4">
         {services.length === 0 ? (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-            <p className="text-gray-500 mb-4">まだサービスがありません</p>
-            <p className="text-gray-400 text-sm mb-4">
-              右の「サービスを追加」ボタンから新しいサービスを作成してください
+          <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-8 text-center">
+            <p className="text-gray-500 text-sm font-medium mb-1">
+              サービスを追加してください
+            </p>
+            <p className="text-gray-400 text-xs">
+              右側の「サービスを追加」ボタンをクリック
             </p>
           </div>
         ) : (
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-800">
-                サービスを編集
-              </h3>
-              <span className="text-sm text-gray-500">
-                {editingIndex + 1} / {services.length}
-              </span>
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-gray-800">
+                  サービスを編集
+                </h3>
+                <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+                  {editingIndex + 1} / {services.length}
+                </span>
+              </div>
             </div>
             
             {/* サービス名入力 */}
@@ -140,25 +144,33 @@ export default function ServiceForm({
               </label>
               <input
                 type="text"
-                placeholder="サービス名を入力（例: マイクロサービスA、Webアプリ）"
+                placeholder="例: マイクロサービスA, Webアプリ"
                 value={editingService?.name || ''}
                 onChange={(e) => updateServiceName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base transition-colors hover:bg-white focus:bg-white"
               />
             </div>
 
             {/* 技術スタック */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                使用技術
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  使用技術
+                </label>
+                <span className="text-xs text-gray-500" title="入力したバージョンから最新バージョンまでのEOL情報が自動的に表示されます">
+                  <svg className="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  入力したバージョンから最新まで自動表示
+                </span>
+              </div>
               
               {(!editingService?.technologies || editingService.technologies.length === 0) ? (
                 <div className="text-center py-4 bg-gray-50 rounded-md border-2 border-dashed border-gray-300 mb-3">
-                  <p className="text-gray-500 text-sm">技術が追加されていません</p>
+                  <p className="text-gray-500 text-sm">技術がありません</p>
                 </div>
               ) : (
-                <div className="space-y-3 mb-3">
+                <div className="space-y-1 mb-3">
                   {editingService.technologies.map((technology) => (
                     <TechnologyInput
                       key={technology.id}
@@ -193,7 +205,7 @@ export default function ServiceForm({
           
           {services.length === 0 ? (
             <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-              <p className="text-gray-500 text-sm">まだサービスがありません</p>
+              <p className="text-gray-500 text-sm">サービスがありません</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -201,10 +213,10 @@ export default function ServiceForm({
                 <div
                   key={service.id}
                   onClick={() => selectService(index)}
-                  className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                  className={`p-3 rounded-lg border cursor-pointer transition-all ${
                     editingIndex === index
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      ? 'border-blue-500 bg-blue-50 shadow-sm ring-1 ring-blue-200'
+                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 hover:shadow-sm'
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -221,9 +233,12 @@ export default function ServiceForm({
                         e.stopPropagation();
                         removeService(index);
                       }}
-                      className="ml-2 px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors flex-shrink-0"
+                      className="ml-2 px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors flex-shrink-0 flex items-center gap-1"
                       title="このサービスを削除"
                     >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
                       削除
                     </button>
                   </div>
@@ -257,9 +272,12 @@ export default function ServiceForm({
           {/* サービスを追加ボタン */}
           <button
             onClick={addNewService}
-            className="w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors text-sm"
+            className="w-full mt-4 px-4 py-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all text-sm font-medium flex items-center justify-center gap-2 shadow-sm hover:shadow"
           >
-            + サービスを追加
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            サービスを追加
           </button>
         </div>
       </div>

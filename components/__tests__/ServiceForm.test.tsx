@@ -53,7 +53,7 @@ describe('ServiceForm', () => {
     renderServiceForm(services);
     
     // サービス名が入力されていることを確認
-    const serviceNameInput = screen.getByPlaceholderText(/サービス名を入力/);
+    const serviceNameInput = screen.getByPlaceholderText(/例: マイクロサービスA/);
     expect(serviceNameInput).toHaveValue('テストサービス');
     
     // サービス一覧に表示されていることを確認
@@ -71,7 +71,7 @@ describe('ServiceForm', () => {
     
     renderServiceForm(services);
     
-    const serviceNameInput = screen.getByPlaceholderText(/サービス名を入力/);
+    const serviceNameInput = screen.getByPlaceholderText(/例: マイクロサービスA/);
     
     await act(async () => {
       fireEvent.change(serviceNameInput, { target: { value: 'テストサービス' } });
@@ -183,7 +183,7 @@ describe('ServiceForm', () => {
     
     // サービス名が切り替わったことを確認
     await waitFor(() => {
-      const serviceNameInput = screen.getByPlaceholderText(/サービス名を入力/) as HTMLInputElement;
+      const serviceNameInput = screen.getByPlaceholderText(/例: マイクロサービスA/) as HTMLInputElement;
       expect(serviceNameInput.value).toBe('サービス2');
     });
   });
@@ -200,7 +200,7 @@ describe('ServiceForm', () => {
     renderServiceForm(services);
     
     // 新規サービス追加ボタンをクリック
-    const addButton = screen.getByText('+ サービスを追加');
+    const addButton = screen.getByText('サービスを追加');
     
     await act(async () => {
       fireEvent.click(addButton);

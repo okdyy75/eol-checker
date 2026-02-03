@@ -151,24 +151,15 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
   }, [services, eolData, getStageColor]);
 
   // データが空の場合の表示
-  if (!services.length) {
+  if (!services.length || !serviceCharts.length || serviceCharts.every(chart => !chart.tasks.length)) {
     return (
       <div className="eol-gantt-empty">
         <div className="empty-message">
-          <h3>ガントチャートを表示するには、サービスと技術を追加してください</h3>
-          <p>上のフォームからサービスを追加し、使用している技術とバージョンを入力してください。</p>
-        </div>
-      </div>
-    );
-  }
-
-  // タスクが存在しない場合（EOLデータが見つからない場合など）
-  if (!serviceCharts.length || serviceCharts.every(chart => !chart.tasks.length)) {
-    return (
-      <div className="eol-gantt-empty">
-        <div className="empty-message">
+          <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
           <h3>表示可能なEOLデータがありません</h3>
-          <p>入力された技術のEOL情報が見つからないか、有効なバージョン情報がありません。</p>
+          <p>サービスと技術を追加すると、入力したバージョンから最新までのEOL情報が表示されます。</p>
         </div>
       </div>
     );
@@ -211,7 +202,7 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
               columnWidth={60}
               listCellWidth="200px"
               rowHeight={50}
-              ganttHeight={Math.max(300, chart.tasks.length * 50 + 100)}
+              ganttHeight={400}
               barCornerRadius={0}
               handleWidth={8}
               fontFamily="Arial, sans-serif"

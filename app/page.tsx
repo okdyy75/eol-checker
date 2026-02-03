@@ -75,29 +75,33 @@ export default function Home() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-4 gap-4">
               <div className="text-center sm:text-left">
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">EOL Timeline Viewer</h1>
+                <a href="/" className="inline-block hover:opacity-80 transition-opacity">
+                  <h1 className="text-xl sm:text-2xl font-bold text-gray-900">EOL Timeline Viewer</h1>
+                </a>
                 <p className="text-xs sm:text-sm text-gray-600 mt-1">
                   技術スタックのEnd of Life情報を視覚的に確認
                 </p>
               </div>
               
               {services.length > 0 && (
-                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <div className="flex flex-row gap-2">
                   <button
                     onClick={handleCopyURL}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                    className="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-md hover:bg-blue-700 transition-colors text-sm font-medium flex items-center justify-center gap-1.5 whitespace-nowrap"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
-                    URLコピー
+                    <span className="hidden sm:inline">URLコピー</span>
+                    <span className="sm:hidden">コピー</span>
                   </button>
                   
                   <button
                     onClick={handleClearData}
-                    className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
+                    className="bg-red-600 text-white px-3 sm:px-4 py-2 rounded-md hover:bg-red-700 transition-colors text-sm font-medium whitespace-nowrap"
                   >
-                    データクリア
+                    <span className="hidden sm:inline">データクリア</span>
+                    <span className="sm:hidden">クリア</span>
                   </button>
                 </div>
               )}
@@ -106,17 +110,25 @@ export default function Home() {
         </header>
 
         {notification && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+          <div 
+            className="fixed top-4 inset-x-0 z-50 flex justify-center px-4 cursor-pointer"
+            onClick={() => setNotification(null)}
+          >
+            <div className="bg-blue-600 text-white rounded-lg shadow-lg p-4 pr-3 animate-fade-in max-w-md w-full relative group hover:bg-blue-700 transition-colors">
+              <div className="flex items-center gap-3">
+                <svg className="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <p className="text-sm font-medium flex-1">{notification}</p>
+                <button
+                  onClick={() => setNotification(null)}
+                  className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full hover:bg-blue-500 text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600"
+                  title="閉じる"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
-                </div>
-                <div className="ml-3">
-                  <p className="text-sm text-blue-700">{notification}</p>
-                </div>
+                </button>
               </div>
             </div>
           </div>

@@ -89,7 +89,8 @@ describe('EOLGanttChart', () => {
   test('サービスが空の場合、空のメッセージを表示する', () => {
     render(<EOLGanttChart services={[]} eolData={mockEOLData} />);
     
-    expect(screen.getByText('ガントチャートを表示するには、サービスと技術を追加してください')).toBeInTheDocument();
+    expect(screen.getByText('EOLタイムライン')).toBeInTheDocument();
+    expect(screen.getByText(/サービスと技術を追加すると/)).toBeInTheDocument();
   });
 
   test('有効なサービスデータがある場合、ガントチャートを表示する', () => {
@@ -126,7 +127,9 @@ describe('EOLGanttChart', () => {
 
     render(<EOLGanttChart services={servicesWithUnknownTech} eolData={mockEOLData} />);
     
-    expect(screen.getByText('表示可能なEOLデータがありません')).toBeInTheDocument();
+    // メッセージが統合されたため、サービスが空の場合と同じメッセージが表示される
+    expect(screen.getByText('EOLタイムライン')).toBeInTheDocument();
+    expect(screen.getByText(/サービスと技術を追加すると/)).toBeInTheDocument();
   });
 
   test('ガントチャートに正しいプロパティが渡される', () => {

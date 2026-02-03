@@ -202,9 +202,9 @@ export default function TechnologyInput({
   const hasErrors = techNameError || versionError;
 
   return (
-    <div className="space-y-2">
-      <div className={`flex flex-col sm:flex-row gap-2 items-start p-3 border rounded ${
-        hasErrors ? 'border-red-300 bg-red-50' : 'border-gray-200'
+    <div className="space-y-1">
+      <div className={`flex flex-col sm:flex-row gap-2 items-start py-2 ${
+        hasErrors ? 'bg-red-50 rounded px-2 -mx-2' : ''
       }`}>
         {/* 技術名入力フィールド（オートコンプリート付き） */}
         <div className="flex-1 relative w-full sm:w-auto">
@@ -214,7 +214,7 @@ export default function TechnologyInput({
           <input
             ref={techNameInputRef}
             type="text"
-            placeholder="技術名（例: python, nodejs）"
+            placeholder="例: python, nodejs, mysql"
             value={technology.name}
             onChange={(e) => handleTechNameChange(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -223,8 +223,8 @@ export default function TechnologyInput({
                 setShowSuggestions(true);
               }
             }}
-            className={`w-full px-3 py-2 border rounded text-sm sm:text-base ${
-              techNameError ? 'border-red-500' : 'border-gray-300'
+            className={`w-full px-3 py-2 bg-gray-50 border rounded text-sm sm:text-base transition-colors ${
+              techNameError ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:bg-white focus:bg-white'
             } focus:outline-none focus:ring-2 focus:ring-blue-500`}
           />
           
@@ -259,7 +259,7 @@ export default function TechnologyInput({
           <input
             ref={versionInputRef}
             type="text"
-            placeholder="バージョン（例: 3.9）"
+            placeholder="例: 3.9, 18"
             value={technology.currentVersion}
             onChange={(e) => handleVersionChange(e.target.value)}
             onKeyDown={handleVersionKeyDown}
@@ -269,8 +269,8 @@ export default function TechnologyInput({
                 setShowVersionSuggestions(true);
               }
             }}
-            className={`w-full px-3 py-2 border rounded text-sm sm:text-base ${
-              versionError ? 'border-red-500' : 'border-gray-300'
+            className={`w-full px-3 py-2 bg-gray-50 border rounded text-sm sm:text-base transition-colors ${
+              versionError ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:bg-white focus:bg-white'
             } focus:outline-none focus:ring-2 focus:ring-blue-500`}
           />
           
@@ -300,9 +300,12 @@ export default function TechnologyInput({
         {/* 削除ボタン */}
         <button
           onClick={onRemove}
-          className="w-full sm:w-auto px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors text-sm sm:text-base"
+          className="w-full sm:w-auto px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors text-sm flex items-center justify-center gap-1"
           title="この技術を削除"
         >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
           削除
         </button>
       </div>

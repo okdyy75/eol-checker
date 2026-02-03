@@ -75,7 +75,7 @@ describe('TechnologyInput', () => {
       />
     );
 
-    const techNameInput = screen.getByPlaceholderText('技術名（例: python, nodejs）');
+    const techNameInput = screen.getByPlaceholderText('例: python, nodejs, mysql');
     
     // fireEventを使用して直接changeイベントを発火
     fireEvent.change(techNameInput, { target: { value: 'node' } });
@@ -100,7 +100,7 @@ describe('TechnologyInput', () => {
       />
     );
 
-    const versionInput = screen.getByPlaceholderText('バージョン（例: 3.9）');
+    const versionInput = screen.getByPlaceholderText('例: 3.9, 18');
     
     // fireEventを使用して直接changeイベントを発火
     fireEvent.change(versionInput, { target: { value: '18.0' } });
@@ -144,7 +144,7 @@ describe('TechnologyInput', () => {
       />
     );
 
-    const techNameInput = screen.getByPlaceholderText('技術名（例: python, nodejs）');
+    const techNameInput = screen.getByPlaceholderText('例: python, nodejs, mysql');
     await user.type(techNameInput, 'node');
 
     await waitFor(() => {
@@ -165,7 +165,7 @@ describe('TechnologyInput', () => {
       />
     );
 
-    const techNameInput = screen.getByPlaceholderText('技術名（例: python, nodejs）');
+    const techNameInput = screen.getByPlaceholderText('例: python, nodejs, mysql');
     await user.type(techNameInput, 'node');
 
     await waitFor(() => {
@@ -193,7 +193,7 @@ describe('TechnologyInput', () => {
       />
     );
 
-    const techNameInput = screen.getByPlaceholderText('技術名（例: python, nodejs）');
+    const techNameInput = screen.getByPlaceholderText('例: python, nodejs, mysql');
     await user.type(techNameInput, 'node');
 
     await waitFor(() => {
@@ -224,7 +224,7 @@ describe('TechnologyInput', () => {
       />
     );
 
-    const techNameInput = screen.getByPlaceholderText('技術名（例: python, nodejs）');
+    const techNameInput = screen.getByPlaceholderText('例: python, nodejs, mysql');
     await user.type(techNameInput, 'node');
 
     await waitFor(() => {
@@ -251,7 +251,7 @@ describe('TechnologyInput', () => {
       />
     );
 
-    const techNameInput = screen.getByPlaceholderText('技術名（例: python, nodejs）');
+    const techNameInput = screen.getByPlaceholderText('例: python, nodejs, mysql');
     await user.type(techNameInput, ' '); // 空白文字を入力
     await user.clear(techNameInput); // クリア
 
@@ -273,7 +273,7 @@ describe('TechnologyInput', () => {
       />
     );
 
-    const versionInput = screen.getByPlaceholderText('バージョン（例: 3.9）');
+    const versionInput = screen.getByPlaceholderText('例: 3.9, 18');
     await user.type(versionInput, ' '); // 空白文字を入力
     await user.clear(versionInput); // クリア
 
@@ -295,7 +295,7 @@ describe('TechnologyInput', () => {
       />
     );
 
-    const techNameInput = screen.getByPlaceholderText('技術名（例: python, nodejs）');
+    const techNameInput = screen.getByPlaceholderText('例: python, nodejs, mysql');
     await user.type(techNameInput, ' ');
     await user.clear(techNameInput);
 
@@ -320,7 +320,7 @@ describe('TechnologyInput', () => {
       </div>
     );
 
-    const techNameInput = screen.getByPlaceholderText('技術名（例: python, nodejs）');
+    const techNameInput = screen.getByPlaceholderText('例: python, nodejs, mysql');
     await user.type(techNameInput, 'node');
 
     await waitFor(() => {
