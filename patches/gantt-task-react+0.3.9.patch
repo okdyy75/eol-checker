@@ -1,0 +1,158 @@
+diff --git a/node_modules/gantt-task-react/dist/index.js b/node_modules/gantt-task-react/dist/index.js
+index 626bb39..7737905 100644
+--- a/node_modules/gantt-task-react/dist/index.js
++++ b/node_modules/gantt-task-react/dist/index.js
+@@ -1523,7 +1523,8 @@ var BarDisplay = function BarDisplay(_ref) {
+       progressWidth = _ref.progressWidth,
+       barCornerRadius = _ref.barCornerRadius,
+       styles = _ref.styles,
+-      onMouseDown = _ref.onMouseDown;
++      onMouseDown = _ref.onMouseDown,
++      task = _ref.task;
+ 
+   var getProcessColor = function getProcessColor() {
+     return isSelected ? styles.progressSelectedColor : styles.progressColor;
+@@ -1533,9 +1534,12 @@ var BarDisplay = function BarDisplay(_ref) {
+     return isSelected ? styles.backgroundSelectedColor : styles.backgroundColor;
+   };
+ 
++  var hasSegments = task && Array.isArray(task.segments) && task.segments.length > 0 && task.start && task.end;
++  var totalDuration = hasSegments ? task.end.getTime() - task.start.getTime() : 0;
++
+   return React__default.createElement("g", {
+     onMouseDown: onMouseDown
+-  }, React__default.createElement("rect", {
++  }, !hasSegments && React__default.createElement("rect", {
+     x: x,
+     width: width,
+     y: y,
+@@ -1544,7 +1548,33 @@ var BarDisplay = function BarDisplay(_ref) {
+     rx: barCornerRadius,
+     fill: getBarColor(),
+     className: styles$6.barBackground
+-  }), React__default.createElement("rect", {
++  }), hasSegments ? task.segments.map(function (segment, idx) {
++    var segStart = new Date(segment.start).getTime();
++    var segEnd = new Date(segment.end).getTime();
++
++    if (!totalDuration || segEnd <= segStart) return null;
++
++    var limitedStart = Math.max(segStart, task.start.getTime());
++    var limitedEnd = Math.min(segEnd, task.end.getTime());
++    if (limitedEnd <= limitedStart) return null;
++
++    var relativeStart = (limitedStart - task.start.getTime()) / totalDuration;
++    var relativeWidth = (limitedEnd - limitedStart) / totalDuration;
++    var segX = x + relativeStart * width;
++    var segWidth = Math.max(1, relativeWidth * width);
++    var segColor = segment.color || getBarColor();
++
++    return React__default.createElement("rect", {
++      key: "seg-".concat(task.id, "-").concat(idx),
++      x: segX,
++      width: segWidth,
++      y: y,
++      height: height,
++      ry: barCornerRadius,
++      rx: barCornerRadius,
++      fill: segColor
++    });
++  }) : React__default.createElement(React.Fragment, null), !hasSegments && React__default.createElement("rect", {
+     x: progressX,
+     width: progressWidth,
+     y: y,
+@@ -1605,6 +1635,7 @@ var Bar = function Bar(_ref) {
+     progressWidth: task.progressWidth,
+     barCornerRadius: task.barCornerRadius,
+     styles: task.styles,
++    task: task,
+     isSelected: isSelected,
+     onMouseDown: function onMouseDown(e) {
+       isDateChangeable && onEventStart("move", task, e);
+@@ -1656,6 +1687,7 @@ var BarSmall = function BarSmall(_ref) {
+     progressWidth: task.progressWidth,
+     barCornerRadius: task.barCornerRadius,
+     styles: task.styles,
++    task: task,
+     isSelected: isSelected,
+     onMouseDown: function onMouseDown(e) {
+       isDateChangeable && onEventStart("move", task, e);
+diff --git a/node_modules/gantt-task-react/dist/index.modern.js b/node_modules/gantt-task-react/dist/index.modern.js
+index b372269..14fece7 100644
+--- a/node_modules/gantt-task-react/dist/index.modern.js
++++ b/node_modules/gantt-task-react/dist/index.modern.js
+@@ -1522,7 +1522,8 @@ var BarDisplay = function BarDisplay(_ref) {
+       progressWidth = _ref.progressWidth,
+       barCornerRadius = _ref.barCornerRadius,
+       styles = _ref.styles,
+-      onMouseDown = _ref.onMouseDown;
++      onMouseDown = _ref.onMouseDown,
++      task = _ref.task;
+ 
+   var getProcessColor = function getProcessColor() {
+     return isSelected ? styles.progressSelectedColor : styles.progressColor;
+@@ -1532,9 +1533,12 @@ var BarDisplay = function BarDisplay(_ref) {
+     return isSelected ? styles.backgroundSelectedColor : styles.backgroundColor;
+   };
+ 
++  var hasSegments = task && Array.isArray(task.segments) && task.segments.length > 0 && task.start && task.end;
++  var totalDuration = hasSegments ? task.end.getTime() - task.start.getTime() : 0;
++
+   return React.createElement("g", {
+     onMouseDown: onMouseDown
+-  }, React.createElement("rect", {
++  }, !hasSegments && React.createElement("rect", {
+     x: x,
+     width: width,
+     y: y,
+@@ -1543,7 +1547,33 @@ var BarDisplay = function BarDisplay(_ref) {
+     rx: barCornerRadius,
+     fill: getBarColor(),
+     className: styles$6.barBackground
+-  }), React.createElement("rect", {
++  }), hasSegments ? task.segments.map(function (segment, idx) {
++    var segStart = new Date(segment.start).getTime();
++    var segEnd = new Date(segment.end).getTime();
++
++    if (!totalDuration || segEnd <= segStart) return null;
++
++    var limitedStart = Math.max(segStart, task.start.getTime());
++    var limitedEnd = Math.min(segEnd, task.end.getTime());
++    if (limitedEnd <= limitedStart) return null;
++
++    var relativeStart = (limitedStart - task.start.getTime()) / totalDuration;
++    var relativeWidth = (limitedEnd - limitedStart) / totalDuration;
++    var segX = x + relativeStart * width;
++    var segWidth = Math.max(1, relativeWidth * width);
++    var segColor = segment.color || getBarColor();
++
++    return React.createElement("rect", {
++      key: "seg-".concat(task.id, "-").concat(idx),
++      x: segX,
++      width: segWidth,
++      y: y,
++      height: height,
++      ry: barCornerRadius,
++      rx: barCornerRadius,
++      fill: segColor
++    });
++  }) : React.createElement(React.Fragment, null), !hasSegments && React.createElement("rect", {
+     x: progressX,
+     width: progressWidth,
+     y: y,
+@@ -1604,6 +1634,7 @@ var Bar = function Bar(_ref) {
+     progressWidth: task.progressWidth,
+     barCornerRadius: task.barCornerRadius,
+     styles: task.styles,
++    task: task,
+     isSelected: isSelected,
+     onMouseDown: function onMouseDown(e) {
+       isDateChangeable && onEventStart("move", task, e);
+@@ -1655,6 +1686,7 @@ var BarSmall = function BarSmall(_ref) {
+     progressWidth: task.progressWidth,
+     barCornerRadius: task.barCornerRadius,
+     styles: task.styles,
++    task: task,
+     isSelected: isSelected,
+     onMouseDown: function onMouseDown(e) {
+       isDateChangeable && onEventStart("move", task, e);

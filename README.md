@@ -14,7 +14,7 @@
 - **フレームワーク**: Next.js 14+ (App Router)
 - **言語**: TypeScript
 - **UIライブラリ**: React 18+
-- **ガントチャート**: @svar-ui/react-gantt
+- **ガントチャート**: gantt-task-react
 - **スタイリング**: Tailwind CSS
 - **ビルド**: 静的エクスポート（next export）
 - **データソース**: endoflife.date API
@@ -60,6 +60,22 @@ npm run test:coverage
 
 # リントを実行
 npm run lint
+```
+
+### gantt-task-react のパッチ運用
+
+このプロジェクトでは、`gantt-task-react` のバー色分け（`task.segments`）表示のために `patch-package` を使用しています。
+
+- パッチファイル: `patches/gantt-task-react+0.3.9.patch`
+- 自動適用: `postinstall` スクリプトで `patch-package` を実行
+- 元ファイル（適用先）:
+  - `node_modules/gantt-task-react/dist/index.js`
+  - `node_modules/gantt-task-react/dist/index.modern.js`
+
+通常は `npm install` 後に自動でパッチが適用されます。手動で再適用したい場合は以下を実行してください。
+
+```bash
+npm run postinstall
 ```
 
 ### ビルドとデプロイ
