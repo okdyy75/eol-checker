@@ -1,7 +1,7 @@
 import { Service, EOLDataMap, GanttScale, EOLCycle } from './types';
 
 // ライフサイクルステージの定義
-// - current: 最新・推奨バージョン（緑 #22c55e）
+// - current: 最新バージョン（緑 #22c55e）
 // - active: アクティブサポート中（青 #3b82f6）
 // - maintenance: メンテナンスモード（グレー #94a3b8）
 // - eol: サポート終了（赤 #ef4444）
@@ -61,13 +61,13 @@ export function convertToGanttData(
         if (typeof cycle.eol === 'string') {
           eolDateStr = cycle.eol;
         } else if (cycle.eol === false) {
-          // eolがfalseの場合、supportがあればそれを使用、なければ5年後を設定
+          // eolがfalseの場合、supportがあればそれを使用、なければ現在日+5年を設定
           if (cycle.support && typeof cycle.support === 'string') {
             eolDateStr = cycle.support;
           } else {
-            const releaseDate = new Date(cycle.releaseDate);
-            releaseDate.setFullYear(releaseDate.getFullYear() + 5);
-            eolDateStr = releaseDate.toISOString().split('T')[0];
+            const horizonDate = new Date();
+            horizonDate.setFullYear(horizonDate.getFullYear() + 5);
+            eolDateStr = horizonDate.toISOString().split('T')[0];
           }
         } else {
           continue;
@@ -134,6 +134,7 @@ export function convertToGanttData(
  *   - releaseDate → lts: current（緑）
  *   - lts → support: active（青）
  *   - support → eol: maintenance（グレー）
+ *   - support日付がなく、eol=false の場合: lts以降は active（青）
  * 
  * パターン2: supportあり、LTSなし（例: Rails、Python、PHP）
  *   - releaseDate → support: active（青）
@@ -152,8 +153,8 @@ function calculateStages(
 ): Array<{ start: Date; end: Date; stage: 'current' | 'active' | 'maintenance' | 'eol' }> {
   const now = new Date();
   
-  // EOL済みの場合は全期間を赤色で表示
-  if (endDate < now) {
+  // EOL日が明示されていて、かつEOL済みの場合は全期間を赤色で表示
+  if (typeof cycle.eol === 'string' && endDate < now) {
     return [{
       start: startDate,
       end: endDate,
@@ -189,11 +190,13 @@ function calculateStages(
         stage: 'maintenance'
       });
     } else {
-      // supportがない場合は、lts → eol を active
+      // support日付がない場合
+      // - eol=false: 終了未定のため active
+      // - eolが日付: lts以降は maintenance
       segments.push({
         start: ltsDate,
         end: endDate,
-        stage: 'active'
+        stage: cycle.eol === false ? 'active' : 'maintenance'
       });
     }
     
@@ -250,8 +253,8 @@ function getLifecycleStage(
 ): 'current' | 'active' | 'maintenance' | 'eol' {
   const now = new Date();
   
-  // 1. EOL済み（サポート終了）
-  if (endDate < now) return 'eol';
+  // 1. EOL日が明示されていてEOL済み（サポート終了）
+  if (typeof cycle.eol === 'string' && endDate < now) return 'eol';
   
   // 2. LTSバージョン（ltsフィールドが日付文字列）
   if (cycle.lts && typeof cycle.lts === 'string') {
@@ -263,9 +266,9 @@ function getLifecycleStage(
       if (now < supportDate) return 'active';
       return 'maintenance';
     }
-    // supportがない場合
+    // support日付がない場合
     if (now < ltsDate) return 'current';
-    return 'active';
+    return cycle.eol === false ? 'active' : 'maintenance';
   }
   
   // 3. 非LTSバージョンでsupportあり

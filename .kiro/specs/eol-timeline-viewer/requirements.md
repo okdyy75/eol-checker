@@ -18,7 +18,7 @@ EOL Timeline Viewerは、開発中のサービスで使用している言語や�
 - **Static_Site**: サーバー側の処理を必要とせず、静的ファイルのみで動作するWebサイト
 - **Build_Time**: アプリケーションのビルドプロセス中に実行される処理のタイミング
 - **Lifecycle_Stage**: バージョンのライフサイクルステージ（current、active、maintenance、eol）
-  - **current**: 最新・推奨バージョン（緑色）
+  - **current**: 最新バージョン（緑色）
   - **active**: アクティブサポート中（青色）
   - **maintenance**: メンテナンスモード（グレー）
   - **eol**: サポート終了（赤色）
@@ -69,18 +69,18 @@ EOL Timeline Viewerは、開発中のサービスで使用している言語や�
 
 1. THE System SHALL 入力されたすべてのServiceとTechnologyをサービスごとに独立したGantt_Chartとして表示する
 2. THE System SHALL 現在のVersionから最新Versionまでのすべてのバージョンを個別の行として表示する
-3. THE System SHALL 各Versionのバーをリリース日からEOL_Dateまでの期間として表示する
+3. THE System SHALL 各Versionのバーをリリース日から終了日までの期間として表示する（終了日は原則EOL_Date、EOLが未設定の場合はsupport日、supportも未設定の場合は現在日+5年の暫定日）
 4. THE System SHALL 各Versionのバーをライフサイクルステージごとにセグメント分割し、色分けして表示する
-   - current（緑）: リリース日からLTS開始日まで
-   - active（青）: LTS開始日からサポート終了日まで（またはリリース日からサポート終了日まで）
-   - maintenance（グレー）: サポート終了日からEOL日まで
-   - eol（赤）: EOL日を過ぎたバージョン全体
+   - current（緑）: 最新バージョン期間（リリース日からLTS開始日前）
+   - active（青）: アクティブサポート期間（LTS開始日からサポート終了日まで、またはリリース日からサポート終了日まで）
+   - maintenance（グレー）: メンテナンス期間（サポート終了日からEOL日まで）
+   - eol（赤）: サポート終了済み（EOL日を過ぎたバージョン全体）
 5. THE System SHALL 現在使用中のバージョンを明示的にマーカー（★）で表示する
 6. THE System SHALL 現在日付を示す垂直線を表示する
-7. WHEN ユーザーがバーにホバーした場合、THE System SHALL 詳細情報（Version番号、リリース日、EOL_Date、ライフサイクルステージ）を表示する
+7. WHEN ユーザーがバーにホバーした場合、THE System SHALL 詳細情報（Version番号、リリース日、EOL_Date）を表示する
 8. THE System SHALL ライフサイクルステージの凡例を表示する
 9. THE System SHALL 中間バージョンを含むすべてのバージョンを表示する（バージョンの欠落がないこと）
-10. THE System SHALL 各バージョンのバーの開始日と終了日が、実際のリリース日とEOL日と正確に一致することを保証する
+10. THE System SHALL 各バージョンのバーの開始日と終了日が、実際のリリース日と終了日定義（EOL日、またはEOL未設定時のfallbackルール）と正確に一致することを保証する
 
 ### 要件4: URL共有機能
 

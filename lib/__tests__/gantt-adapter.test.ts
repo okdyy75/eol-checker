@@ -129,6 +129,187 @@ describe('gantt-adapter', () => {
       // Should not create any tasks for unknown technology
       expect(result.tasks).toHaveLength(0);
     });
+
+    describe('lifecycle stage rules', () => {
+      beforeEach(() => {
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date('2026-02-15T00:00:00Z'));
+      });
+
+      afterEach(() => {
+        jest.useRealTimers();
+      });
+
+      it('should split LTS + support into current/active/maintenance', () => {
+        const services: Service[] = [
+          {
+            id: '1',
+            name: 'Node Service',
+            technologies: [
+              {
+                id: '1',
+                name: 'nodejs',
+                currentVersion: '24',
+              },
+            ],
+          },
+        ];
+
+        const eolData: EOLDataMap = {
+          nodejs: {
+            productName: 'nodejs',
+            cycles: [
+              {
+                cycle: '24',
+                releaseDate: '2025-05-06',
+                lts: '2025-10-28',
+                support: '2026-10-20',
+                eol: '2028-04-30',
+              },
+            ],
+          },
+        };
+
+        const result = convertToGanttData(services, eolData);
+        const task = result.tasks.find(t => t.text.startsWith('nodejs 24'));
+
+        expect(task).toBeDefined();
+        const details = JSON.parse(task!.details as string);
+        expect(details.stage).toBe('active');
+        expect(task!.segments?.map(segment => segment.stage)).toEqual([
+          'current',
+          'active',
+          'maintenance',
+        ]);
+      });
+
+      it('should split support-only into active/maintenance', () => {
+        const services: Service[] = [
+          {
+            id: '1',
+            name: 'Node Current Service',
+            technologies: [
+              {
+                id: '1',
+                name: 'nodejs',
+                currentVersion: '25',
+              },
+            ],
+          },
+        ];
+
+        const eolData: EOLDataMap = {
+          nodejs: {
+            productName: 'nodejs',
+            cycles: [
+              {
+                cycle: '25',
+                releaseDate: '2025-10-15',
+                support: '2026-04-01',
+                eol: '2026-06-01',
+                lts: false,
+              },
+            ],
+          },
+        };
+
+        const result = convertToGanttData(services, eolData);
+        const task = result.tasks.find(t => t.text.startsWith('nodejs 25'));
+
+        expect(task).toBeDefined();
+        const details = JSON.parse(task!.details as string);
+        expect(details.stage).toBe('active');
+        expect(task!.segments?.map(segment => segment.stage)).toEqual([
+          'active',
+          'maintenance',
+        ]);
+      });
+
+      it('should split LTS-only into current/maintenance', () => {
+        const services: Service[] = [
+          {
+            id: '1',
+            name: 'MySQL Service',
+            technologies: [
+              {
+                id: '1',
+                name: 'mysql',
+                currentVersion: '8.0',
+              },
+            ],
+          },
+        ];
+
+        const eolData: EOLDataMap = {
+          mysql: {
+            productName: 'mysql',
+            cycles: [
+              {
+                cycle: '8.0',
+                releaseDate: '2018-04-08',
+                lts: '2023-07-18',
+                eol: '2026-04-30',
+              },
+            ],
+          },
+        };
+
+        const result = convertToGanttData(services, eolData);
+        const task = result.tasks.find(t => t.text.startsWith('mysql 8.0'));
+
+        expect(task).toBeDefined();
+        const details = JSON.parse(task!.details as string);
+        expect(details.stage).toBe('maintenance');
+        expect(task!.segments?.map(segment => segment.stage)).toEqual([
+          'current',
+          'maintenance',
+        ]);
+      });
+
+      it('should treat lts-without-support and eol=false as current/active', () => {
+        const services: Service[] = [
+          {
+            id: '1',
+            name: 'Bootstrap Service',
+            technologies: [
+              {
+                id: '1',
+                name: 'bootstrap',
+                currentVersion: '5',
+              },
+            ],
+          },
+        ];
+
+        const eolData: EOLDataMap = {
+          bootstrap: {
+            productName: 'bootstrap',
+            cycles: [
+              {
+                cycle: '5',
+                releaseDate: '2021-05-05',
+                lts: '2022-07-19',
+                support: true,
+                eol: false,
+              },
+            ],
+          },
+        };
+
+        const result = convertToGanttData(services, eolData);
+        const task = result.tasks.find(t => t.text.startsWith('bootstrap 5'));
+
+        expect(task).toBeDefined();
+        const details = JSON.parse(task!.details as string);
+        expect(details.stage).toBe('active');
+        expect(details.eolDate).toBe('2031-02-15');
+        expect(task!.end.toISOString()).toBe('2031-02-15T00:00:00.000Z');
+        expect(task!.segments?.map(segment => segment.stage)).toEqual([
+          'current',
+          'active',
+        ]);
+      });
+    });
   });
 
   describe('getRelevantCycles', () => {

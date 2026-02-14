@@ -7,7 +7,7 @@ import { Service, EOLDataMap } from '../lib/types';
 import { convertToGanttData } from '../lib/gantt-adapter';
 
 // ライフサイクルステージの型定義
-// - current: 最新・推奨バージョン（緑 #22c55e）
+// - current: 最新バージョン（緑 #22c55e）
 // - active: アクティブサポート中（青 #3b82f6）
 // - maintenance: メンテナンスモード（グレー #94a3b8）
 // - eol: サポート終了（赤 #ef4444）
@@ -101,7 +101,7 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
   // current: 緑 #22c55e, active: 青 #3b82f6, maintenance: グレー #94a3b8, eol: 赤 #ef4444
   const getStageColor = useCallback((stage: string): string => {
     const colors: Record<string, string> = {
-      current: '#22c55e',      // 最新・推奨
+      current: '#22c55e',      // 最新バージョン
       active: '#3b82f6',       // アクティブサポート
       maintenance: '#94a3b8',  // メンテナンス
       eol: '#ef4444'           // サポート終了
@@ -180,7 +180,7 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
         <div className="legend">
           <div className="legend-item">
             <div className="legend-color current"></div>
-            <span>最新・推奨 (Current)</span>
+            <span>最新 (Current)</span>
           </div>
           <div className="legend-item">
             <div className="legend-color active"></div>
