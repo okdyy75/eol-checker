@@ -40,8 +40,13 @@ export async function loadEOLData(): Promise<EOLDataMap> {
 async function fetchEOLDataFromFile(): Promise<EOLDataMap> {
   try {
     // ベースパスを考慮したパスを生成
+    // NEXT_PUBLIC_BASE_PATHはビルド時に埋め込まれる
     const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
-    const response = await fetch(`${basePath}/data/eol-data.json`);
+    const dataPath = `${basePath}/data/eol-data.json`;
+    
+    console.log('Fetching EOL data from:', dataPath); // デバッグ用
+    
+    const response = await fetch(dataPath);
     if (!response.ok) {
       throw new Error(`Failed to load EOL data: ${response.status} ${response.statusText}`);
     }
