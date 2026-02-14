@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, Suspense } from 'react';
 import ServiceForm from '@/components/ServiceForm';
 import EOLGanttChart from '@/components/EOLGanttChart';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useEOLData } from '@/lib/hooks/use-eol-data';
 import { useURLState } from '@/lib/hooks/use-url-state';
 
-export default function Home() {
+function HomeContent() {
   const { eolData, availableTechnologies, isLoading, error: eolError } = useEOLData();
   const { services, setServices, clearServices, getShareableURL, isURLLoaded, urlError } = useURLState();
   const [notification, setNotification] = useState<string | null>(null);
@@ -180,5 +180,20 @@ export default function Home() {
         </main>
       </div>
     </ErrorBoundary>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">アプリケーションを初期化しています...</p>
+        </div>
+      </div>
+    }>
+      <HomeContent />
+    </Suspense>
   );
 }
