@@ -11,6 +11,12 @@ const nextConfig = {
   // 静的ホスティング対応
   trailingSlash: true,
   
+  // ベースパス設定（要件 2.1, 2.5, 5.2）
+  basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
+  
+  // アセットプレフィックス設定（要件 4.4）
+  assetPrefix: process.env.NEXT_PUBLIC_BASE_PATH || '',
+  
   // ESLint設定
   eslint: {
     dirs: ['app', 'lib', 'components', 'scripts'],
@@ -21,9 +27,6 @@ const nextConfig = {
     // 型チェックエラーでもビルドを続行（本番では false にすることを推奨）
     ignoreBuildErrors: false,
   },
-  
-  // 静的ファイル配信設定
-  assetPrefix: process.env.NODE_ENV === 'production' ? '' : '',
   
   // ビルド時の設定
   generateBuildId: async () => {

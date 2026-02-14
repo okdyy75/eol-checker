@@ -1,0 +1,59 @@
+name: Update EOL Data
+
+on:
+  schedule:
+    # 毎週日曜日 0:00 UTC（日本時間 9:00）に実行
+    - cron: '0 0 * * 0'
+  workflow_dispatch:  # 手動実行も可能
+
+permissions:
+  contents: write
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # ソースコードのチェックアウト
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      # Node.js環境のセットアップ
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      # 依存関係のインストール
+      - name: Install dependencies
+        run: npm ci
+      
+      # EOLデータの取得
+      - name: Fetch EOL data
+        run: npm run fetch-eol-data
+        env:
+          NODE_ENV: production
+      
+      # 変更の確認とコミット
+      - name: Check for changes
+        id: git-check
+        run: |
+          git diff --exit-code public/data/eol-data.json || echo "changed=true" >> $GITHUB_OUTPUT
+      
+      # 変更があればコミット・プッシュ
+      - name: Commit and push if changed
+        if: steps.git-check.outputs.changed == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add public/data/eol-data.json
+          git commit -m "chore: update EOL data [skip ci]"
+          git push
+      
+      # 変更がない場合のログ
+      - name: No changes
+        if: steps.git-check.outputs.changed != 'true'
+        run: echo "No changes in EOL data"
