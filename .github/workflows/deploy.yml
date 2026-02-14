@@ -53,6 +53,20 @@ jobs:
           NEXT_PUBLIC_BASE_PATH: /eol-checker
           NODE_ENV: production
       
+      # ビルド成果物の確認
+      - name: Verify build output
+        run: |
+          echo "Checking out directory contents:"
+          ls -la out/
+          echo "Checking data directory:"
+          ls -la out/data/ || echo "data directory not found"
+          if [ ! -f out/data/eol-data.json ]; then
+            echo "ERROR: eol-data.json not found in out/data/"
+            exit 1
+          fi
+          echo "eol-data.json size:"
+          ls -lh out/data/eol-data.json
+      
       # GitHub Pagesのセットアップ
       - name: Setup Pages
         uses: actions/configure-pages@v4
