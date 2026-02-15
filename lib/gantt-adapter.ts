@@ -37,7 +37,7 @@ export function convertToGanttData(
 ): { tasks: GanttTask[]; scales: GanttScale[] } {
   const tasks: GanttTask[] = [];
   let taskId = 1;
-  
+
   // サービスごとに処理
   for (const service of services) {
     // 技術ごとに処理
@@ -47,13 +47,13 @@ export function convertToGanttData(
         console.warn(`EOL data not found for technology: ${tech.name}`);
         continue;
       }
-      
+
       // 要件 3.3: 現在のVersionから最新Versionまでのすべてのバージョンを表示する
       const relevantCycles = getRelevantCycles(
         productData.cycles,
         tech.currentVersion
       );
-      
+
       // バージョンタスクを作成
       for (const cycle of relevantCycles) {
         // cycle.eolがfalseの場合は、supportまたは適切な終了日を設定
@@ -68,18 +68,18 @@ export function convertToGanttData(
         } else {
           continue;
         }
-        
+
         if (!cycle.releaseDate) {
           continue;
         }
-        
+
         const startDate = new Date(cycle.releaseDate);
         const endDate = new Date(eolDateStr);
         const now = new Date();
-        
+
         // 現在使用中のバージョンかどうかを判定
         const isCurrentVersion = compareVersions(cycle.cycle, tech.currentVersion) === 0;
-        
+
         // 期間を分割してセグメントを作成
         const stages = calculateStages(cycle, startDate, endDate);
         const segments = stages.map(stage => ({
@@ -101,6 +101,7 @@ export function convertToGanttData(
           details: JSON.stringify({
             version: cycle.cycle,
             eolDate: eolDateStr,
+            eolUndefined: cycle.eol === false,
             releaseDate: cycle.releaseDate,
             stage: lifecycleStage,
             lts: cycle.lts || false,
@@ -109,15 +110,15 @@ export function convertToGanttData(
             isCurrentVersion,
           }),
         };
-        
+
         tasks.push(task);
       }
     }
   }
-  
+
   // GanttScale配列を生成
   const scales = generateGanttScales();
-  
+
   return { tasks, scales };
 }
 
@@ -148,7 +149,7 @@ function calculateStages(
   endDate: Date
 ): Array<{ start: Date; end: Date; stage: 'current' | 'active' | 'maintenance' | 'eol' }> {
   const now = new Date();
-  
+
   // EOL日が明示されていて、かつEOL済みの場合は全期間を赤色で表示
   if (typeof cycle.eol === 'string' && endDate < now) {
     return [{
@@ -157,19 +158,19 @@ function calculateStages(
       stage: 'eol'
     }];
   }
-  
+
   // パターン1: LTSバージョン（ltsフィールドが日付文字列）
   if (cycle.lts && typeof cycle.lts === 'string') {
     const ltsDate = new Date(cycle.lts);
     const segments: Array<{ start: Date; end: Date; stage: 'current' | 'active' | 'maintenance' | 'eol' }> = [];
-    
+
     // releaseDate → lts: current（緑）
     segments.push({
       start: startDate,
       end: ltsDate,
       stage: 'current'
     });
-    
+
     // lts → support: active（青）
     if (cycle.support && typeof cycle.support === 'string') {
       const supportDate = new Date(cycle.support);
@@ -178,7 +179,7 @@ function calculateStages(
         end: supportDate,
         stage: 'active'
       });
-      
+
       // support → eol: maintenance（グレー）
       segments.push({
         start: supportDate,
@@ -195,14 +196,14 @@ function calculateStages(
         stage: cycle.eol === false ? 'active' : 'maintenance'
       });
     }
-    
+
     return segments;
   }
-  
+
   // パターン2: 非LTSバージョンでsupportあり
   if (cycle.support && typeof cycle.support === 'string') {
     const supportDate = new Date(cycle.support);
-    
+
     return [
       // releaseDate → support: active（青）
       {
@@ -218,7 +219,7 @@ function calculateStages(
       }
     ];
   }
-  
+
   // パターン3: supportフィールドがない場合は、全期間をactiveとして表示
   return [{
     start: startDate,
@@ -248,10 +249,10 @@ function getLifecycleStage(
   endDate: Date
 ): 'current' | 'active' | 'maintenance' | 'eol' {
   const now = new Date();
-  
+
   // 1. EOL日が明示されていてEOL済み（サポート終了）
   if (typeof cycle.eol === 'string' && endDate < now) return 'eol';
-  
+
   // 2. LTSバージョン（ltsフィールドが日付文字列）
   if (cycle.lts && typeof cycle.lts === 'string') {
     const ltsDate = new Date(cycle.lts);
@@ -266,14 +267,14 @@ function getLifecycleStage(
     if (now < ltsDate) return 'current';
     return cycle.eol === false ? 'active' : 'maintenance';
   }
-  
+
   // 3. 非LTSバージョンでsupportあり
   if (cycle.support && typeof cycle.support === 'string') {
     const supportDate = new Date(cycle.support);
     if (now < supportDate) return 'active';
     return 'maintenance';
   }
-  
+
   // 4. supportフィールドがない場合
   return 'active';
 }
@@ -286,38 +287,38 @@ export function getRelevantCycles(cycles: EOLCycle[], currentVersion: string): E
   if (!cycles || cycles.length === 0) {
     return [];
   }
-  
+
   // 有効なサイクル（リリース日があるもの）をフィルタリング
   // eolがfalseの場合はまだEOLでないバージョンとして有効
-  const validCycles = cycles.filter(cycle => 
-    cycle.releaseDate && 
+  const validCycles = cycles.filter(cycle =>
+    cycle.releaseDate &&
     (cycle.eol === false || typeof cycle.eol === 'string')
   );
-  
+
   if (validCycles.length === 0) {
     return [];
   }
-  
+
   // リリース日でソート（古い順）
-  validCycles.sort((a, b) => 
+  validCycles.sort((a, b) =>
     new Date(a.releaseDate).getTime() - new Date(b.releaseDate).getTime()
   );
-  
+
   // currentVersionが空の場合は、すべてのサイクルを返す
   if (!currentVersion || currentVersion.trim() === '') {
     return validCycles;
   }
-  
+
   // 現在バージョンのインデックスを見つける
-  const currentIndex = validCycles.findIndex(cycle => 
+  const currentIndex = validCycles.findIndex(cycle =>
     compareVersions(cycle.cycle, currentVersion) >= 0
   );
-  
+
   // 現在バージョンが見つからない場合は、すべてのサイクルを返す
   if (currentIndex === -1) {
     return validCycles;
   }
-  
+
   // 現在バージョンから最新までのサイクルを返す
   return validCycles.slice(currentIndex);
 }
@@ -330,13 +331,13 @@ export function isVersionEOL(eolDate: string | boolean): boolean {
   if (eolDate === false) {
     return false;
   }
-  
+
   if (typeof eolDate === 'string') {
     const eol = new Date(eolDate);
     const now = new Date();
     return eol < now;
   }
-  
+
   return false;
 }
 
@@ -365,20 +366,20 @@ function compareVersions(version1: string, version2: string): number {
       .split('.')
       .map(part => parseInt(part, 10) || 0);
   };
-  
+
   const v1Parts = normalize(version1);
   const v2Parts = normalize(version2);
-  
+
   // 長さを合わせる
   const maxLength = Math.max(v1Parts.length, v2Parts.length);
   while (v1Parts.length < maxLength) v1Parts.push(0);
   while (v2Parts.length < maxLength) v2Parts.push(0);
-  
+
   // 各部分を比較
   for (let i = 0; i < maxLength; i++) {
     if (v1Parts[i] > v2Parts[i]) return 1;
     if (v1Parts[i] < v2Parts[i]) return -1;
   }
-  
+
   return 0;
 }

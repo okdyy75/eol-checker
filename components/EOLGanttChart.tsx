@@ -23,6 +23,7 @@ type TaskWithSegments = Task & {
     end: Date;
     color?: string;
   }>;
+  eolUndefined?: boolean;
 };
 
 const VIEW_SHIFT_MONTHS = 6;
@@ -113,7 +114,7 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
   const serviceCharts = useMemo(() => {
     return services.map(service => {
       const data = convertToGanttData([service], eolData);
-      
+
       // gantt-task-react用のTask配列に変換
       const tasks: TaskWithSegments[] = data.tasks.map((task, index) => {
         let details;
@@ -126,10 +127,10 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
         const rawSegments = (task as { segments?: SegmentWithStage[] }).segments;
         const segments = rawSegments && rawSegments.length
           ? rawSegments.map(segment => ({
-              start: segment.start,
-              end: segment.end,
-              color: getStageColor(segment.stage),
-            }))
+            start: segment.start,
+            end: segment.end,
+            color: getStageColor(segment.stage),
+          }))
           : undefined;
 
         return {
@@ -147,6 +148,7 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
             progressSelectedColor: '#ff9e0d',
           },
           ...(segments ? { segments } : {}),
+          eolUndefined: details.eolUndefined || false, // EOL未定フラグを追加
         };
       });
 
@@ -176,24 +178,30 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
     <div className="eol-gantt-container">
       {/* ヘッダー */}
       <div className="eol-gantt-header">
-        <h2>EOL タイムライン</h2>
-        <div className="legend">
-          <div className="legend-item">
-            <div className="legend-color current"></div>
-            <span>最新 (Current)</span>
+        <div className="header-top">
+          <h2>EOL タイムライン</h2>
+          <div className="legend">
+            <div className="legend-item">
+              <div className="legend-color current"></div>
+              <span>最新 (Current)</span>
+            </div>
+            <div className="legend-item">
+              <div className="legend-color active"></div>
+              <span>アクティブサポート (Active)</span>
+            </div>
+            <div className="legend-item">
+              <div className="legend-color maintenance"></div>
+              <span>メンテナンス (Maintenance)</span>
+            </div>
+            <div className="legend-item">
+              <div className="legend-color eol"></div>
+              <span>サポート終了 (EOL)</span>
+            </div>
           </div>
-          <div className="legend-item">
-            <div className="legend-color active"></div>
-            <span>アクティブサポート (Active)</span>
-          </div>
-          <div className="legend-item">
-            <div className="legend-color maintenance"></div>
-            <span>メンテナンス (Maintenance)</span>
-          </div>
-          <div className="legend-item">
-            <div className="legend-color eol"></div>
-            <span>サポート終了 (EOL)</span>
-          </div>
+        </div>
+        <div className="header-note">
+          ※ 入力されたバージョンから最新バージョンまで表示<br />
+          ※ EOL日が未定のバージョンは現在+5年で表示
         </div>
       </div>
 
@@ -232,11 +240,15 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
               TaskListTable={TaskListTableComponent}
               TooltipContent={({ task }) => {
                 let details;
+                let eolUndefined = false;
                 try {
                   const taskData = chart.tasks.find(t => t.id === task.id);
                   if (taskData && taskData.name) {
                     const match = taskData.name.match(/^(.+?)\s+(.+?)(\s+★)?$/);
                     if (match) {
+                      // TaskWithSegmentsからeolUndefinedを取得
+                      eolUndefined = (taskData as TaskWithSegments).eolUndefined || false;
+
                       details = {
                         techName: match[1],
                         version: match[2],
@@ -249,9 +261,9 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
                 } catch {
                   details = null;
                 }
-                
+
                 if (!details) return null;
-                
+
                 return (
                   <div style={{
                     padding: '8px 12px',
@@ -269,7 +281,7 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
                       リリース: {details.releaseDate}
                     </div>
                     <div style={{ color: '#6b7280', fontSize: '12px' }}>
-                      EOL: {details.eolDate}
+                      EOL: {eolUndefined ? '未定' : details.eolDate}
                     </div>
                   </div>
                 );
@@ -290,11 +302,17 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
 
         .eol-gantt-header {
           display: flex;
-          justify-content: space-between;
-          align-items: center;
+          flex-direction: column;
+          gap: 0.5rem;
           padding: 1rem 0;
           border-bottom: 1px solid #e5e7eb;
           margin-bottom: 1rem;
+        }
+
+        .header-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
         }
 
         .eol-gantt-header h2 {
@@ -302,6 +320,12 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
           font-size: 1.5rem;
           font-weight: 600;
           color: #1f2937;
+        }
+
+        .header-note {
+          font-size: 0.875rem;
+          color: #6b7280;
+          text-align: right;
         }
 
         .legend {
@@ -398,7 +422,7 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
 
         /* レスポンシブデザイン */
         @media (max-width: 1024px) {
-          .eol-gantt-header {
+          .header-top {
             flex-direction: column;
             align-items: flex-start;
             gap: 0.75rem;
@@ -407,6 +431,10 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
           .legend {
             align-self: stretch;
             justify-content: center;
+          }
+
+          .header-note {
+            text-align: left;
           }
         }
 
