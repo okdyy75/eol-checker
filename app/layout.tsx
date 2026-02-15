@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import Script from 'next/script';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -7,11 +8,15 @@ export const metadata: Metadata = {
   keywords: ['EOL', 'End of Life', 'Timeline', 'Gantt Chart', 'Technology', 'Framework', 'Language'],
   authors: [{ name: 'EOL Timeline Viewer' }],
   robots: 'index, follow',
+  icons: {
+    icon: '/icon.svg',
+  },
   openGraph: {
     title: 'EOL Timeline Viewer',
     description: 'End of Life情報を視覚的に確認できる静的Webサイト',
     type: 'website',
     locale: 'ja_JP',
+    siteName: 'EOL Timeline Viewer',
   },
   twitter: {
     card: 'summary_large_image',
@@ -30,9 +35,27 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const gaId = process.env.NEXT_PUBLIC_GA_ID;
+
   return (
     <html lang="ja">
       <body>
+        {gaId && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${gaId}');
+              `}
+            </Script>
+          </>
+        )}
         {children}
       </body>
     </html>
