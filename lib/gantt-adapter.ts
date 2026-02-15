@@ -61,14 +61,10 @@ export function convertToGanttData(
         if (typeof cycle.eol === 'string') {
           eolDateStr = cycle.eol;
         } else if (cycle.eol === false) {
-          // eolがfalseの場合、supportがあればそれを使用、なければ現在日+5年を設定
-          if (cycle.support && typeof cycle.support === 'string') {
-            eolDateStr = cycle.support;
-          } else {
-            const horizonDate = new Date();
-            horizonDate.setFullYear(horizonDate.getFullYear() + 5);
-            eolDateStr = horizonDate.toISOString().split('T')[0];
-          }
+          // eolがfalseの場合、現在日+5年を設定（メンテナンス期間を表示するため）
+          const horizonDate = new Date();
+          horizonDate.setFullYear(horizonDate.getFullYear() + 5);
+          eolDateStr = horizonDate.toISOString().split('T')[0];
         } else {
           continue;
         }
