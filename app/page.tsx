@@ -82,7 +82,7 @@ function HomeContent() {
                   技術スタックのEnd of Life情報を視覚的に確認
                 </p>
               </div>
-              
+
               {services.length > 0 && (
                 <div className="flex flex-row gap-2">
                   <button
@@ -95,7 +95,7 @@ function HomeContent() {
                     <span className="hidden sm:inline">URLコピー</span>
                     <span className="sm:hidden">コピー</span>
                   </button>
-                  
+
                   <button
                     onClick={handleClearData}
                     className="bg-red-600 text-white px-3 sm:px-4 py-2 rounded-md hover:bg-red-700 transition-colors text-sm font-medium whitespace-nowrap"
@@ -110,7 +110,7 @@ function HomeContent() {
         </header>
 
         {notification && (
-          <div 
+          <div
             className="fixed top-4 inset-x-0 z-50 flex justify-center px-4 cursor-pointer"
             onClick={() => setNotification(null)}
           >
@@ -134,13 +134,13 @@ function HomeContent() {
           </div>
         )}
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-6 py-3 sm:py-6">
           <div className="flex flex-col gap-4 sm:gap-6 lg:gap-8">
             <div>
               <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
                 <h2 className="text-lg font-semibold text-gray-900 mb-4">サービスと技術スタック</h2>
-                <ServiceForm 
-                  services={services} 
+                <ServiceForm
+                  services={services}
                   onServicesChange={handleServicesChange}
                   availableTechnologies={availableTechnologies}
                   eolData={eolData}
@@ -149,10 +149,10 @@ function HomeContent() {
             </div>
 
             <div>
-              <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
-                <EOLGanttChart 
-                  services={services} 
-                  eolData={eolData} 
+              <div className="bg-white rounded-lg shadow-sm border p-3 sm:p-6">
+                <EOLGanttChart
+                  services={services}
+                  eolData={eolData}
                 />
               </div>
             </div>
@@ -162,9 +162,9 @@ function HomeContent() {
             <div className="text-center text-xs sm:text-sm text-gray-500">
               <p>
                 EOL情報は{' '}
-                <a 
-                  href="https://endoflife.date" 
-                  target="_blank" 
+                <a
+                  href="https://endoflife.date"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:text-blue-800 underline"
                 >

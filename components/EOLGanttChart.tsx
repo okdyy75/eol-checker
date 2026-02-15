@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useState } from 'react';
 import { Gantt, Task, ViewMode } from 'gantt-task-react';
 import 'gantt-task-react/dist/index.css';
 import { Service, EOLDataMap } from '../lib/types';
@@ -55,6 +55,40 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
     return new Date(now.getFullYear(), now.getMonth() - VIEW_SHIFT_MONTHS, 1);
   }, []);
 
+  // アコーディオンの開閉状態を管理（デフォルトですべて開く）
+  const [openServices, setOpenServices] = useState<Set<string>>(() => {
+    return new Set(services.map(s => s.name));
+  });
+
+  // 画面幅に応じたlistCellWidthを計算
+  const [listCellWidth, setListCellWidth] = useState('200px');
+
+  useMemo(() => {
+    const updateWidth = () => {
+      if (typeof window !== 'undefined') {
+        setListCellWidth(window.innerWidth < 640 ? '120px' : '200px');
+      }
+    };
+    updateWidth();
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', updateWidth);
+      return () => window.removeEventListener('resize', updateWidth);
+    }
+  }, []);
+
+  // サービスの開閉を切り替える
+  const toggleService = useCallback((serviceName: string) => {
+    setOpenServices(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(serviceName)) {
+        newSet.delete(serviceName);
+      } else {
+        newSet.add(serviceName);
+      }
+      return newSet;
+    });
+  }, []);
+
   // カスタムタスクリストヘッダー（From/Toカラムを表示しない）
   const TaskListHeaderComponent = useCallback(() => {
     return (
@@ -70,10 +104,10 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
           paddingLeft: '10px',
         }}
       >
-        <div style={{ width: '200px' }}>技術 / バージョン</div>
+        <div style={{ width: listCellWidth }}>技術 / バージョン</div>
       </div>
     );
-  }, []);
+  }, [listCellWidth]);
 
   // カスタムタスクリストテーブル（From/Toカラムを表示しない）
   const TaskListTableComponent = useCallback(({ tasks, rowHeight }: any) => {
@@ -91,12 +125,12 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
               paddingLeft: '10px',
             }}
           >
-            <div style={{ width: '200px' }}>{task.name}</div>
+            <div style={{ width: listCellWidth }}>{task.name}</div>
           </div>
         ))}
       </div>
     );
-  }, []);
+  }, [listCellWidth]);
 
   // ステージに応じた色を取得する関数
   // current: 緑 #22c55e, active: 青 #3b82f6, maintenance: グレー #94a3b8, eol: 赤 #ef4444
@@ -205,91 +239,118 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
         </div>
       </div>
 
-      {/* サービスごとにガントチャートを表示 */}
-      {serviceCharts.map((chart, index) => (
-        <div key={index} className="service-gantt-section">
-          <h3 className="service-title">{chart.serviceName}</h3>
-          <div className="eol-gantt-wrapper">
-            <Gantt
-              tasks={chart.tasks}
-              viewMode={ViewMode.Month}
-              viewDate={initialViewDate}
-              preStepsCount={VIEW_SHIFT_MONTHS}
-              locale="ja"
-              listCellWidth="200px"
-              rowHeight={50}
-              ganttHeight={400}
-              barCornerRadius={0}
-              handleWidth={8}
-              fontFamily="Arial, sans-serif"
-              fontSize="14"
-              barFill={60}
-              barProgressColor="#a3a3a3"
-              barProgressSelectedColor="#8884d8"
-              barBackgroundColor="#b8c2cc"
-              barBackgroundSelectedColor="#aeb8c2"
-              projectProgressColor="#7db46c"
-              projectProgressSelectedColor="#59a14f"
-              projectBackgroundColor="#fac465"
-              projectBackgroundSelectedColor="#f7bb53"
-              milestoneBackgroundColor="#f1c453"
-              milestoneBackgroundSelectedColor="#f29e4c"
-              rtl={false}
-              todayColor="rgba(239, 68, 68, 0.2)"
-              TaskListHeader={TaskListHeaderComponent}
-              TaskListTable={TaskListTableComponent}
-              TooltipContent={({ task }) => {
-                let details;
-                let eolUndefined = false;
-                try {
-                  const taskData = chart.tasks.find(t => t.id === task.id);
-                  if (taskData && taskData.name) {
-                    const match = taskData.name.match(/^(.+?)\s+(.+?)(\s+★)?$/);
-                    if (match) {
-                      // TaskWithSegmentsからeolUndefinedを取得
-                      eolUndefined = (taskData as TaskWithSegments).eolUndefined || false;
+      {/* サービスごとにアコーディオン形式でガントチャートを表示 */}
+      <div className="services-list">
+        {serviceCharts.map((chart, index) => {
+          const isOpen = openServices.has(chart.serviceName);
+          const isLast = index === serviceCharts.length - 1;
 
-                      details = {
-                        techName: match[1],
-                        version: match[2],
-                        isCurrentVersion: !!match[3],
-                        releaseDate: task.start.toLocaleDateString('ja-JP'),
-                        eolDate: task.end.toLocaleDateString('ja-JP'),
-                      };
-                    }
-                  }
-                } catch {
-                  details = null;
-                }
+          return (
+            <div key={index} className={`service-gantt-section ${isLast ? 'last' : ''}`}>
+              <button
+                onClick={() => toggleService(chart.serviceName)}
+                className="service-title-button"
+              >
+                <span className="service-title-text">{chart.serviceName}</span>
+                <svg
+                  className={`chevron ${isOpen ? 'open' : ''}`}
+                  width="20"
+                  height="20"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
 
-                if (!details) return null;
+              {isOpen && (
+                <div className="eol-gantt-wrapper m-4">
+                  <Gantt
+                    tasks={chart.tasks}
+                    viewMode={ViewMode.Month}
+                    viewDate={initialViewDate}
+                    preStepsCount={VIEW_SHIFT_MONTHS}
+                    locale="ja"
+                    listCellWidth={listCellWidth}
+                    rowHeight={50}
+                    barCornerRadius={0}
+                    handleWidth={8}
+                    fontFamily="Arial, sans-serif"
+                    fontSize="14"
+                    barFill={60}
+                    barProgressColor="#a3a3a3"
+                    barProgressSelectedColor="#8884d8"
+                    barBackgroundColor="#b8c2cc"
+                    barBackgroundSelectedColor="#aeb8c2"
+                    projectProgressColor="#7db46c"
+                    projectProgressSelectedColor="#59a14f"
+                    projectBackgroundColor="#fac465"
+                    projectBackgroundSelectedColor="#f7bb53"
+                    milestoneBackgroundColor="#f1c453"
+                    milestoneBackgroundSelectedColor="#f29e4c"
+                    rtl={false}
+                    todayColor="rgba(239, 68, 68, 0.2)"
+                    TaskListHeader={TaskListHeaderComponent}
+                    TaskListTable={TaskListTableComponent}
+                    TooltipContent={({ task }) => {
+                      let details;
+                      let eolUndefined = false;
+                      try {
+                        const taskData = chart.tasks.find(t => t.id === task.id);
+                        if (taskData && taskData.name) {
+                          const match = taskData.name.match(/^(.+?)\s+(.+?)(\s+★)?$/);
+                          if (match) {
+                            // TaskWithSegmentsからeolUndefinedを取得
+                            eolUndefined = (taskData as TaskWithSegments).eolUndefined || false;
 
-                return (
-                  <div style={{
-                    padding: '8px 12px',
-                    backgroundColor: 'white',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '6px',
-                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                    fontSize: '14px',
-                  }}>
-                    <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
-                      {details.techName} {details.version}
-                      {details.isCurrentVersion && <span style={{ color: '#f59e0b', marginLeft: '4px' }}>★ 現在使用中</span>}
-                    </div>
-                    <div style={{ color: '#6b7280', fontSize: '12px' }}>
-                      リリース: {details.releaseDate}
-                    </div>
-                    <div style={{ color: '#6b7280', fontSize: '12px' }}>
-                      EOL: {eolUndefined ? '未定' : details.eolDate}
-                    </div>
-                  </div>
-                );
-              }}
-            />
-          </div>
-        </div>
-      ))}
+                            details = {
+                              techName: match[1],
+                              version: match[2],
+                              isCurrentVersion: !!match[3],
+                              releaseDate: task.start.toLocaleDateString('ja-JP'),
+                              eolDate: task.end.toLocaleDateString('ja-JP'),
+                            };
+                          }
+                        }
+                      } catch {
+                        details = null;
+                      }
+
+                      if (!details) return null;
+
+                      return (
+                        <div style={{
+                          padding: '8px 12px',
+                          backgroundColor: 'white',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '6px',
+                          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                          fontSize: '14px',
+                        }}>
+                          <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
+                            {details.techName} {details.version}
+                            {details.isCurrentVersion && <span style={{ color: '#f59e0b', marginLeft: '4px' }}>★ 現在使用中</span>}
+                          </div>
+                          <div style={{ color: '#6b7280', fontSize: '12px' }}>
+                            リリース: {details.releaseDate}
+                          </div>
+                          <div style={{ color: '#6b7280', fontSize: '12px' }}>
+                            EOL: {eolUndefined ? '未定' : details.eolDate}
+                          </div>
+                        </div>
+                      );
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
 
       <style jsx>{`
         .eol-gantt-container {
@@ -363,32 +424,74 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
           background-color: #ef4444;
         }
 
-        .service-gantt-section {
-          margin-bottom: 2rem;
+        .services-list {
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          overflow: hidden;
+          background-color: white;
+          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
         }
 
-        .service-title {
+        .service-gantt-section {
+          border-bottom: 1px solid #e5e7eb;
+        }
+
+        .service-gantt-section.last {
+          border-bottom: none;
+        }
+
+        .service-title-button {
+          width: 100%;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
           font-size: 1.25rem;
           font-weight: 600;
           color: #1f2937;
-          margin-bottom: 1rem;
-          padding: 0.5rem 1rem;
-          background-color: #f3f4f6;
+          padding: 1rem 1.5rem;
+          background-color: #f9fafb;
+          border-top: 0;
+          border-right: 0;
+          border-bottom: 0;
           border-left: 4px solid #3b82f6;
+          cursor: pointer;
+          transition: background-color 0.2s ease;
+        }
+
+        .service-title-button:hover {
+          background-color: #f3f4f6;
+        }
+
+        .service-title-button:active {
+          background-color: #e5e7eb;
+        }
+
+        .service-title-text {
+          flex: 1;
+          text-align: left;
+        }
+
+        .chevron {
+          transition: transform 0.2s ease;
+          color: #3b82f6;
+          flex-shrink: 0;
+        }
+
+        .chevron.open {
+          transform: rotate(180deg);
         }
 
         .eol-gantt-wrapper {
           flex: 1;
           overflow: auto;
           border: 1px solid #e5e7eb;
-          border-radius: 8px;
           position: relative;
         }
 
-        /* 現在日付の縦線を強調 */
-        .eol-gantt-wrapper :global(.today-highlight) {
-          background-color: rgba(239, 68, 68, 0.15) !important;
-          border-left: 2px solid #ef4444 !important;
+        .eol-gantt-wrapper > div {
+          border: 1px solid #e5e7eb;
+          border-radius: 4px;
+          overflow: hidden;
         }
 
         .eol-gantt-empty {
