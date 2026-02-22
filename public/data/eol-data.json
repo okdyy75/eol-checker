@@ -683,8 +683,8 @@
         "cycle": "2",
         "releaseDate": "2021-12-01",
         "eol": false,
-        "latest": "2.238.0",
-        "latestReleaseDate": "2026-02-09",
+        "latest": "2.239.0",
+        "latestReleaseDate": "2026-02-19",
         "lts": false,
         "support": true
       }
@@ -2209,8 +2209,8 @@
         "cycle": "21",
         "releaseDate": "2025-11-19",
         "eol": "2027-05-19",
-        "latest": "21.1.4",
-        "latestReleaseDate": "2026-02-11",
+        "latest": "21.1.5",
+        "latestReleaseDate": "2026-02-18",
         "lts": false,
         "support": "2026-05-19",
         "extendedSupport": true
@@ -3042,9 +3042,17 @@
     "productName": "apache-activemq-artemis",
     "cycles": [
       {
+        "cycle": "2.51",
+        "releaseDate": "2026-02-11",
+        "eol": false,
+        "latest": "2.51.0",
+        "latestReleaseDate": "2026-02-06",
+        "lts": false
+      },
+      {
         "cycle": "2.50",
         "releaseDate": "2026-01-23",
-        "eol": false,
+        "eol": "2026-02-11",
         "latest": "2.50.0",
         "latestReleaseDate": "2026-01-15",
         "lts": false
@@ -3475,8 +3483,8 @@
         "cycle": "2",
         "releaseDate": "2020-12-17",
         "eol": "2026-04-22",
-        "latest": "2.11.0",
-        "latestReleaseDate": "2025-05-20",
+        "latest": "2.11.1",
+        "latestReleaseDate": "2026-02-16",
         "lts": false,
         "support": "2025-10-22"
       },
@@ -3704,9 +3712,18 @@
     "productName": "apache-camel",
     "cycles": [
       {
+        "cycle": "4.18",
+        "lts": true,
+        "releaseDate": "2026-02-17",
+        "eol": "2027-02-17",
+        "supportedJavaVersions": "17, 21",
+        "latest": "4.18.0",
+        "latestReleaseDate": "2026-02-13"
+      },
+      {
         "cycle": "4.17",
         "releaseDate": "2026-01-12",
-        "eol": false,
+        "eol": "2026-02-17",
         "supportedJavaVersions": "17, 21",
         "latest": "4.17.0",
         "latestReleaseDate": "2026-01-08",
@@ -4666,6 +4683,15 @@
     "productName": "apache-kafka",
     "cycles": [
       {
+        "cycle": "4.2",
+        "releaseDate": "2026-02-17",
+        "eol": false,
+        "latest": "4.2.0",
+        "latestReleaseDate": "2026-02-16",
+        "lts": false,
+        "extendedSupport": false
+      },
+      {
         "cycle": "4.1",
         "releaseDate": "2025-09-02",
         "eol": false,
@@ -4687,8 +4713,8 @@
         "cycle": "3.9",
         "releaseDate": "2024-11-06",
         "eol": false,
-        "latest": "3.9.1",
-        "latestReleaseDate": "2025-05-19",
+        "latest": "3.9.2",
+        "latestReleaseDate": "2026-02-21",
         "lts": false,
         "extendedSupport": "2027-02-19"
       },
@@ -5069,9 +5095,17 @@
     "productName": "apache-nifi",
     "cycles": [
       {
+        "cycle": "2.8",
+        "releaseDate": "2026-02-13",
+        "eol": false,
+        "latest": "2.8.0",
+        "latestReleaseDate": "2026-02-13",
+        "lts": false
+      },
+      {
         "cycle": "2.7",
         "releaseDate": "2025-12-09",
-        "eol": false,
+        "eol": "2026-02-13",
         "latest": "2.7.2",
         "latestReleaseDate": "2025-12-17",
         "lts": false
@@ -5221,8 +5255,8 @@
         "cycle": "4.1",
         "releaseDate": "2025-09-08",
         "eol": "2026-03-08",
-        "latest": "4.1.2",
-        "latestReleaseDate": "2025-11-17",
+        "latest": "4.1.3",
+        "latestReleaseDate": "2026-02-19",
         "lts": false,
         "extendedSupport": "2026-03-08"
       },
@@ -5231,8 +5265,8 @@
         "lts": true,
         "releaseDate": "2024-10-21",
         "eol": "2026-10-21",
-        "latest": "4.0.8",
-        "latestReleaseDate": "2025-11-17",
+        "latest": "4.0.9",
+        "latestReleaseDate": "2026-02-19",
         "extendedSupport": "2027-10-21"
       },
       {
@@ -5267,8 +5301,8 @@
         "lts": true,
         "releaseDate": "2023-05-02",
         "eol": "2025-05-02",
-        "latest": "3.0.15",
-        "latestReleaseDate": "2025-11-17",
+        "latest": "3.0.16",
+        "latestReleaseDate": "2026-02-16",
         "extendedSupport": "2026-05-02"
       },
       {
@@ -5723,8 +5757,8 @@
         "cycle": "4.2",
         "releaseDate": "2025-09-18",
         "eol": false,
-        "latest": "4.2.16",
-        "latestReleaseDate": "2026-02-13",
+        "latest": "4.2.17",
+        "latestReleaseDate": "2026-02-20",
         "lts": false,
         "support": true
       },
@@ -6057,8 +6091,8 @@
         "cycle": "3.12",
         "releaseDate": "2024-03-21",
         "eol": false,
-        "latest": "3.12.7.2",
-        "latestReleaseDate": "2026-01-23",
+        "latest": "3.12.8",
+        "latestReleaseDate": "2026-02-21",
         "lts": false
       },
       {
@@ -6175,16 +6209,16 @@
         "cycle": "3.3",
         "releaseDate": "2026-02-02",
         "eol": false,
-        "latest": "3.3.0",
-        "latestReleaseDate": "2026-02-02",
+        "latest": "3.3.1",
+        "latestReleaseDate": "2026-02-18",
         "lts": false
       },
       {
         "cycle": "3.2",
         "releaseDate": "2025-11-04",
         "eol": false,
-        "latest": "3.2.6",
-        "latestReleaseDate": "2026-01-22",
+        "latest": "3.2.7",
+        "latestReleaseDate": "2026-02-18",
         "lts": false
       },
       {
@@ -6404,24 +6438,24 @@
         "cycle": "4.0",
         "releaseDate": "2026-02-04",
         "eol": false,
-        "latest": "4.0.0",
-        "latestReleaseDate": "2026-02-04",
+        "latest": "4.0.1",
+        "latestReleaseDate": "2026-02-16",
         "lts": false
       },
       {
         "cycle": "3.7",
         "releaseDate": "2025-07-23",
         "eol": false,
-        "latest": "3.7.9",
-        "latestReleaseDate": "2026-01-28",
+        "latest": "3.7.10",
+        "latestReleaseDate": "2026-02-16",
         "lts": false
       },
       {
         "cycle": "3.6",
         "releaseDate": "2024-11-14",
         "eol": "2026-02-04",
-        "latest": "3.6.18",
-        "latestReleaseDate": "2026-01-28",
+        "latest": "3.6.19",
+        "latestReleaseDate": "2026-02-16",
         "lts": false
       },
       {
@@ -7997,7 +8031,7 @@
       {
         "cycle": "8.18",
         "releaseDate": "2025-04-09",
-        "eol": false,
+        "eol": "2025-10-20",
         "latest": "8.18.8",
         "latestReleaseDate": "2025-10-02",
         "lts": false
@@ -8799,8 +8833,8 @@
         "lts": true,
         "releaseDate": "2025-07-14",
         "eol": "2027-07-14",
-        "latest": "4.5.6",
-        "latestReleaseDate": "2026-01-19",
+        "latest": "4.5.7",
+        "latestReleaseDate": "2026-02-16",
         "support": "2025-11-11"
       },
       {
@@ -8826,8 +8860,8 @@
         "lts": true,
         "releaseDate": "2024-07-16",
         "eol": "2026-07-16",
-        "latest": "4.2.17",
-        "latestReleaseDate": "2026-01-19",
+        "latest": "4.2.18",
+        "latestReleaseDate": "2026-02-16",
         "support": "2024-11-19"
       },
       {
@@ -9119,8 +9153,8 @@
         "cycle": "2",
         "releaseDate": "2020-05-04",
         "eol": false,
-        "latest": "2.10.2",
-        "latestReleaseDate": "2025-08-22",
+        "latest": "2.11.1",
+        "latestReleaseDate": "2026-02-20",
         "lts": false
       },
       {
@@ -9509,8 +9543,8 @@
         "cycle": "3.31",
         "releaseDate": "2025-10-21",
         "eol": false,
-        "latest": "3.31.3",
-        "latestReleaseDate": "2025-12-18",
+        "latest": "3.31.4",
+        "latestReleaseDate": "2026-02-19",
         "lts": false
       },
       {
@@ -10143,6 +10177,7 @@
       },
       {
         "cycle": "6",
+        "staleReleaseThresholdDays": 730,
         "releaseDate": "2023-11-14",
         "eol": false,
         "latest": "6.8.24",
@@ -11256,8 +11291,8 @@
         "cycle": "1.19",
         "releaseDate": "2026-02-03",
         "eol": false,
-        "latest": "1.19.0",
-        "latestReleaseDate": "2026-02-03",
+        "latest": "1.19.1",
+        "latestReleaseDate": "2026-02-17",
         "lts": false
       },
       {
@@ -11887,8 +11922,8 @@
         "cycle": "2",
         "releaseDate": "2023-01-17",
         "eol": false,
-        "latest": "2.21.0",
-        "latestReleaseDate": "2026-01-16",
+        "latest": "2.21.1",
+        "latestReleaseDate": "2026-02-18",
         "lts": false,
         "support": "2026-04-28"
       },
@@ -11896,8 +11931,8 @@
         "cycle": "1",
         "releaseDate": "2020-01-01",
         "eol": false,
-        "latest": "1.37.12",
-        "latestReleaseDate": "2026-01-20",
+        "latest": "1.37.13",
+        "latestReleaseDate": "2026-02-18",
         "lts": false,
         "support": "2023-08-22"
       }
@@ -11910,8 +11945,8 @@
         "cycle": "12",
         "releaseDate": "2025-09-05",
         "eol": false,
-        "latest": "12.22.0",
-        "latestReleaseDate": "2026-02-10",
+        "latest": "12.23.1",
+        "latestReleaseDate": "2026-02-17",
         "lts": false,
         "support": true
       },
@@ -11979,7 +12014,7 @@
         "releaseDate": "2026-02-02",
         "eol": "2026-08-02",
         "latest": "26.1.0",
-        "latestReleaseDate": "2026-02-02",
+        "latestReleaseDate": "2026-02-17",
         "lts": false,
         "support": "2026-08-02"
       },
@@ -11987,8 +12022,8 @@
         "cycle": "25.4",
         "releaseDate": "2025-11-03",
         "eol": "2027-05-03",
-        "latest": "25.4.4",
-        "latestReleaseDate": "2026-02-03",
+        "latest": "25.4.5",
+        "latestReleaseDate": "2026-02-17",
         "lts": false,
         "support": "2026-11-03"
       },
@@ -12005,8 +12040,8 @@
         "cycle": "25.2",
         "releaseDate": "2025-05-09",
         "eol": "2026-11-12",
-        "latest": "25.2.12",
-        "latestReleaseDate": "2026-02-04",
+        "latest": "25.2.13",
+        "latestReleaseDate": "2026-02-17",
         "lts": false,
         "support": "2026-05-12"
       },
@@ -12023,8 +12058,8 @@
         "cycle": "24.3",
         "releaseDate": "2024-11-18",
         "eol": "2026-05-18",
-        "latest": "24.3.26",
-        "latestReleaseDate": "2026-01-20",
+        "latest": "24.3.27",
+        "latestReleaseDate": "2026-02-17",
         "lts": false,
         "support": "2025-11-18"
       },
@@ -12042,8 +12077,8 @@
         "releaseDate": "2024-05-20",
         "lts": "2026-10-21",
         "eol": "2025-11-20",
-        "latest": "24.1.25",
-        "latestReleaseDate": "2025-10-08",
+        "latest": "24.1.26",
+        "latestReleaseDate": "2026-02-17",
         "support": "2025-05-20"
       },
       {
@@ -12051,8 +12086,8 @@
         "releaseDate": "2024-02-05",
         "lts": "2026-07-08",
         "eol": "2025-08-05",
-        "latest": "23.2.28",
-        "latestReleaseDate": "2025-09-03",
+        "latest": "23.2.29",
+        "latestReleaseDate": "2026-02-17",
         "support": "2025-02-05"
       },
       {
@@ -12844,8 +12879,8 @@
         "cycle": "1.22",
         "releaseDate": "2025-10-27",
         "eol": false,
-        "latest": "1.22.3",
-        "latestReleaseDate": "2026-01-14",
+        "latest": "1.22.4",
+        "latestReleaseDate": "2026-02-18",
         "lts": false
       },
       {
@@ -13086,11 +13121,20 @@
     "productName": "contao",
     "cycles": [
       {
+        "cycle": "5.7",
+        "lts": true,
+        "releaseDate": "2026-02-18",
+        "eol": "2030-02-14",
+        "latest": "5.7.0",
+        "latestReleaseDate": "2026-02-18",
+        "support": "2029-02-14"
+      },
+      {
         "cycle": "5.6",
         "releaseDate": "2025-08-18",
         "eol": "2026-02-14",
-        "latest": "5.6.10",
-        "latestReleaseDate": "2026-01-12",
+        "latest": "5.6.11",
+        "latestReleaseDate": "2026-02-18",
         "lts": false,
         "support": "2026-02-14"
       },
@@ -13221,24 +13265,24 @@
         "cycle": "1.33",
         "releaseDate": "2025-09-08",
         "eol": false,
-        "latest": "1.33.1",
-        "latestReleaseDate": "2025-12-22",
+        "latest": "1.33.2",
+        "latestReleaseDate": "2026-02-20",
         "lts": false
       },
       {
         "cycle": "1.32",
         "releaseDate": "2025-05-15",
         "eol": false,
-        "latest": "1.32.2",
-        "latestReleaseDate": "2025-12-22",
+        "latest": "1.32.3",
+        "latestReleaseDate": "2026-02-20",
         "lts": false
       },
       {
         "cycle": "1.31",
         "releaseDate": "2025-05-06",
         "eol": false,
-        "latest": "1.31.3",
-        "latestReleaseDate": "2025-12-22",
+        "latest": "1.31.4",
+        "latestReleaseDate": "2026-02-20",
         "lts": false
       },
       {
@@ -13386,7 +13430,7 @@
       {
         "cycle": "8.9",
         "releaseDate": "2025-07-21",
-        "eol": "2026-04-21",
+        "eol": "2026-05-10",
         "latest": "8.9",
         "latestReleaseDate": "2025-07-21",
         "lts": false
@@ -13817,8 +13861,8 @@
         "cycle": "7.6",
         "releaseDate": "2024-03-25",
         "eol": "2027-03-31",
-        "latest": "7.6.9",
-        "latestReleaseDate": "2026-01-01",
+        "latest": "7.6.10",
+        "latestReleaseDate": "2026-02-01",
         "lts": false
       },
       {
@@ -14006,8 +14050,8 @@
         "cycle": "5",
         "releaseDate": "2024-03-26",
         "eol": "2031-12-31",
-        "latest": "5.9.10",
-        "latestReleaseDate": "2026-02-12",
+        "latest": "5.9.12",
+        "latestReleaseDate": "2026-02-18",
         "lts": false,
         "support": "2030-12-31"
       },
@@ -14015,8 +14059,8 @@
         "cycle": "4",
         "releaseDate": "2022-05-04",
         "eol": "2026-04-30",
-        "latest": "4.17.4",
-        "latestReleaseDate": "2026-02-11",
+        "latest": "4.17.6",
+        "latestReleaseDate": "2026-02-18",
         "lts": false,
         "support": "2025-04-30"
       },
@@ -14047,8 +14091,8 @@
         "cycle": "1.11",
         "releaseDate": "2025-12-19",
         "eol": "2026-12-19",
-        "latest": "1.11.5",
-        "latestReleaseDate": "2026-02-13",
+        "latest": "1.11.6",
+        "latestReleaseDate": "2026-02-17",
         "lts": false,
         "support": true
       },
@@ -14396,8 +14440,8 @@
         "cycle": "2.6",
         "releaseDate": "2025-12-10",
         "eol": false,
-        "latest": "2.6.9",
-        "latestReleaseDate": "2026-02-10",
+        "latest": "2.6.10",
+        "latestReleaseDate": "2026-02-17",
         "lts": false
       },
       {
@@ -15503,7 +15547,7 @@
       },
       {
         "cycle": "12",
-        "staleReleaseThresholdDays": 500,
+        "staleReleaseThresholdDays": 730,
         "releaseDate": "2023-06-03",
         "eol": false,
         "supportedPhpVersions": "8.1+",
@@ -15925,7 +15969,7 @@
       {
         "cycle": "8.18",
         "releaseDate": "2025-04-10",
-        "eol": false,
+        "eol": "2025-10-21",
         "latest": "8.18.8",
         "latestReleaseDate": "2025-10-02",
         "lts": false
@@ -15980,8 +16024,8 @@
         "cycle": "40",
         "releaseDate": "2026-01-13",
         "eol": "2026-06-30",
-        "latest": "40.4.1",
-        "latestReleaseDate": "2026-02-13",
+        "latest": "40.6.0",
+        "latestReleaseDate": "2026-02-19",
         "chromeVersion": "M144",
         "nodeVersion": "24",
         "lts": false
@@ -15990,8 +16034,8 @@
         "cycle": "39",
         "releaseDate": "2025-10-28",
         "eol": "2026-05-05",
-        "latest": "39.6.0",
-        "latestReleaseDate": "2026-02-13",
+        "latest": "39.6.1",
+        "latestReleaseDate": "2026-02-19",
         "chromeVersion": "M142",
         "nodeVersion": "22",
         "lts": false
@@ -17200,8 +17244,8 @@
         "cycle": "28",
         "releaseDate": "2025-05-20",
         "eol": "2028-05-20",
-        "latest": "28.3.1",
-        "latestReleaseDate": "2026-01-13",
+        "latest": "28.3.2",
+        "latestReleaseDate": "2026-02-19",
         "lts": false,
         "support": true
       },
@@ -17209,8 +17253,8 @@
         "cycle": "27",
         "releaseDate": "2024-05-17",
         "eol": "2027-05-20",
-        "latest": "27.3.4.7",
-        "latestReleaseDate": "2026-02-04",
+        "latest": "27.3.4.8",
+        "latestReleaseDate": "2026-02-19",
         "lts": false,
         "support": "2025-05-20"
       },
@@ -17218,8 +17262,8 @@
         "cycle": "26",
         "releaseDate": "2023-05-15",
         "eol": "2026-05-15",
-        "latest": "26.2.5.16",
-        "latestReleaseDate": "2025-11-06",
+        "latest": "26.2.5.17",
+        "latestReleaseDate": "2026-02-19",
         "lts": false,
         "support": "2024-05-17"
       },
@@ -17314,8 +17358,8 @@
         "releaseDate": "2026-02-06",
         "eol": false,
         "eoesProvider": "Tidelift",
-        "latest": "10.0.0",
-        "latestReleaseDate": "2026-02-06",
+        "latest": "10.0.1",
+        "latestReleaseDate": "2026-02-20",
         "lts": false,
         "support": true,
         "extendedSupport": true
@@ -17325,8 +17369,8 @@
         "releaseDate": "2024-04-05",
         "eol": "2026-08-06",
         "eoesProvider": "Tidelift",
-        "latest": "9.39.2",
-        "latestReleaseDate": "2025-12-12",
+        "latest": "9.39.3",
+        "latestReleaseDate": "2026-02-20",
         "lts": false,
         "support": true,
         "extendedSupport": true
@@ -19017,8 +19061,8 @@
         "cycle": "147",
         "releaseDate": "2026-01-13",
         "eol": false,
-        "latest": "147.0.3",
-        "latestReleaseDate": "2026-02-04",
+        "latest": "147.0.4",
+        "latestReleaseDate": "2026-02-16",
         "lts": false
       },
       {
@@ -19074,8 +19118,8 @@
         "lts": true,
         "releaseDate": "2025-06-24",
         "eol": "2026-09-16",
-        "latest": "140.7.0",
-        "latestReleaseDate": "2026-01-13"
+        "latest": "140.7.1",
+        "latestReleaseDate": "2026-02-16"
       },
       {
         "cycle": "139",
@@ -19274,8 +19318,8 @@
         "lts": true,
         "releaseDate": "2023-07-04",
         "eol": "2026-03-15",
-        "latest": "115.32.0",
-        "latestReleaseDate": "2026-01-13"
+        "latest": "115.32.1",
+        "latestReleaseDate": "2026-02-16"
       },
       {
         "cycle": "114",
@@ -19406,8 +19450,8 @@
         "cycle": "4.2",
         "releaseDate": "2025-11-11",
         "eol": false,
-        "latest": "4.2.2",
-        "latestReleaseDate": "2025-12-23",
+        "latest": "4.2.3.1",
+        "latestReleaseDate": "2026-02-19",
         "lts": false
       },
       {
@@ -21266,6 +21310,15 @@
     "productName": "gitlab",
     "cycles": [
       {
+        "cycle": "18.9",
+        "releaseDate": "2026-02-19",
+        "eol": "2026-05-21",
+        "latest": "18.9.0",
+        "latestReleaseDate": "2026-02-18",
+        "lts": false,
+        "support": "2026-03-19"
+      },
+      {
         "cycle": "18.8",
         "releaseDate": "2026-01-15",
         "eol": "2026-04-16",
@@ -22072,8 +22125,8 @@
         "cycle": "1",
         "releaseDate": "2016-06-09",
         "eol": false,
-        "latest": "1.10",
-        "latestReleaseDate": "2026-02-12",
+        "latest": "1.10.1",
+        "latestReleaseDate": "2026-02-14",
         "lts": false
       }
     ]
@@ -22085,8 +22138,8 @@
         "cycle": "4.6",
         "releaseDate": "2026-01-26",
         "eol": false,
-        "latest": "4.6",
-        "latestReleaseDate": "2026-01-25",
+        "latest": "4.6.1",
+        "latestReleaseDate": "2026-02-16",
         "lts": false,
         "support": true
       },
@@ -22242,11 +22295,20 @@
     "productName": "google-kubernetes-engine",
     "cycles": [
       {
+        "cycle": "1.35",
+        "releaseDate": "2026-02-11",
+        "eol": "2027-04-11",
+        "latest": "1.35.0-gke.3047000",
+        "latestReleaseDate": "2026-02-19",
+        "lts": false,
+        "support": "2027-02-28"
+      },
+      {
         "cycle": "1.34",
         "releaseDate": "2025-09-30",
         "eol": "2026-10-01",
-        "latest": "1.34.3-gke.1444000",
-        "latestReleaseDate": "2026-02-11",
+        "latest": "1.34.4-gke.1047000",
+        "latestReleaseDate": "2026-02-19",
         "lts": false,
         "support": "2026-08-30"
       },
@@ -22254,8 +22316,8 @@
         "cycle": "1.33",
         "releaseDate": "2025-06-03",
         "eol": "2026-08-03",
-        "latest": "1.33.5-gke.2469000",
-        "latestReleaseDate": "2026-02-11",
+        "latest": "1.33.8-gke.1026000",
+        "latestReleaseDate": "2026-02-19",
         "lts": false,
         "support": "2026-06-30"
       },
@@ -22263,8 +22325,8 @@
         "cycle": "1.32",
         "releaseDate": "2025-02-11",
         "eol": "2026-04-11",
-        "latest": "1.32.11-gke.1264000",
-        "latestReleaseDate": "2026-02-11",
+        "latest": "1.32.12-gke.1026000",
+        "latestReleaseDate": "2026-02-19",
         "lts": false,
         "support": "2026-02-28"
       },
@@ -22272,8 +22334,8 @@
         "cycle": "1.31",
         "releaseDate": "2024-10-25",
         "eol": "2026-01-16",
-        "latest": "1.31.14-gke.1376000",
-        "latestReleaseDate": "2026-02-11",
+        "latest": "1.31.14-gke.1423000",
+        "latestReleaseDate": "2026-02-19",
         "lts": false,
         "support": "2025-11-30"
       },
@@ -22281,8 +22343,8 @@
         "cycle": "1.30",
         "releaseDate": "2024-07-31",
         "eol": "2025-09-30",
-        "latest": "1.30.14-gke.2026000",
-        "latestReleaseDate": "2026-02-11",
+        "latest": "1.30.14-gke.2071000",
+        "latestReleaseDate": "2026-02-19",
         "lts": false,
         "support": "2025-07-31"
       },
@@ -22974,8 +23036,8 @@
         "cycle": "3.6",
         "releaseDate": "2025-11-17",
         "eol": false,
-        "latest": "3.6.5",
-        "latestReleaseDate": "2026-02-06",
+        "latest": "3.6.6",
+        "latestReleaseDate": "2026-02-18",
         "lts": false
       },
       {
@@ -23762,8 +23824,8 @@
         "cycle": "3.3",
         "releaseDate": "2025-11-26",
         "eol": "2027-01-01",
-        "latest": "3.3.3",
-        "latestReleaseDate": "2026-02-12",
+        "latest": "3.3.4",
+        "latestReleaseDate": "2026-02-19",
         "lts": false
       },
       {
@@ -23771,15 +23833,15 @@
         "releaseDate": "2025-05-28",
         "lts": true,
         "eol": "2030-04-01",
-        "latest": "3.2.12",
-        "latestReleaseDate": "2026-02-12"
+        "latest": "3.2.13",
+        "latestReleaseDate": "2026-02-19"
       },
       {
         "cycle": "3.1",
         "releaseDate": "2024-11-26",
         "eol": "2026-01-01",
-        "latest": "3.1.14",
-        "latestReleaseDate": "2026-02-12",
+        "latest": "3.1.15",
+        "latestReleaseDate": "2026-02-19",
         "lts": false
       },
       {
@@ -23787,8 +23849,8 @@
         "releaseDate": "2024-05-29",
         "lts": true,
         "eol": "2029-04-01",
-        "latest": "3.0.16",
-        "latestReleaseDate": "2026-02-12"
+        "latest": "3.0.17",
+        "latestReleaseDate": "2026-02-19"
       },
       {
         "cycle": "2.9",
@@ -27397,12 +27459,21 @@
     "productName": "istio",
     "cycles": [
       {
+        "cycle": "1.29",
+        "releaseDate": "2026-02-16",
+        "eol": "2026-08-31",
+        "supportedKubernetesVersions": "1.31 - 1.35",
+        "latest": "1.29.0",
+        "latestReleaseDate": "2026-02-16",
+        "lts": false
+      },
+      {
         "cycle": "1.28",
         "releaseDate": "2025-11-05",
-        "eol": "2026-07-31",
+        "eol": "2026-05-31",
         "supportedKubernetesVersions": "1.30 - 1.34",
-        "latest": "1.28.3",
-        "latestReleaseDate": "2026-01-19",
+        "latest": "1.28.4",
+        "latestReleaseDate": "2026-02-16",
         "lts": false
       },
       {
@@ -27410,8 +27481,8 @@
         "releaseDate": "2025-08-11",
         "eol": "2026-04-30",
         "supportedKubernetesVersions": "1.29 - 1.33",
-        "latest": "1.27.6",
-        "latestReleaseDate": "2026-02-08",
+        "latest": "1.27.7",
+        "latestReleaseDate": "2026-02-16",
         "lts": false
       },
       {
@@ -27622,6 +27693,7 @@
     "cycles": [
       {
         "cycle": "4",
+        "staleReleaseThresholdDays": 730,
         "minRubyVersion": "2.5+",
         "releaseDate": "2019-08-20",
         "eol": false,
@@ -27682,8 +27754,8 @@
         "releaseLabel": "Regular",
         "releaseDate": "2016-04-20",
         "eol": false,
-        "latest": "2.550",
-        "latestReleaseDate": "2026-02-10",
+        "latest": "2.551",
+        "latestReleaseDate": "2026-02-16",
         "lts": false
       },
       {
@@ -27691,8 +27763,8 @@
         "releaseDate": "2025-12-10",
         "lts": "2026-01-21",
         "eol": false,
-        "latest": "2.541.1",
-        "latestReleaseDate": "2026-01-21"
+        "latest": "2.541.2",
+        "latestReleaseDate": "2026-02-16"
       },
       {
         "cycle": "2.528",
@@ -28772,8 +28844,8 @@
         "cycle": "6",
         "releaseDate": "2025-10-14",
         "eol": "2029-10-16",
-        "latest": "6.0.2",
-        "latestReleaseDate": "2025-12-20",
+        "latest": "6.0.3",
+        "latestReleaseDate": "2026-02-06",
         "link": "https://www.joomla.org/announcements/release-news/5939-joomla-6-0-and-joomla-5-4-are-here.html",
         "lts": false,
         "support": "2028-10-17"
@@ -28782,8 +28854,8 @@
         "cycle": "5",
         "releaseDate": "2023-10-14",
         "eol": "2027-10-12",
-        "latest": "5.4.2",
-        "latestReleaseDate": "2025-12-20",
+        "latest": "5.4.3",
+        "latestReleaseDate": "2026-02-06",
         "link": "https://www.joomla.org/announcements/release-news/5900-joomla-5-0-and-joomla-4-4-are-here",
         "lts": false,
         "support": "2026-10-13"
@@ -29002,13 +29074,22 @@
     "productName": "kde-plasma",
     "cycles": [
       {
+        "cycle": "6.6",
+        "releaseDate": "2026-02-17",
+        "eol": false,
+        "latest": "6.6.0",
+        "latestReleaseDate": "2026-02-17",
+        "lts": false,
+        "support": true
+      },
+      {
         "cycle": "6.5",
         "releaseDate": "2025-10-21",
-        "eol": false,
+        "eol": "2026-02-17",
         "latest": "6.5.5",
         "latestReleaseDate": "2026-01-13",
         "lts": false,
-        "support": true
+        "support": "2026-02-17"
       },
       {
         "cycle": "6.4",
@@ -29057,6 +29138,7 @@
       },
       {
         "cycle": "5.27",
+        "staleReleaseThresholdDays": 730,
         "lts": true,
         "releaseDate": "2023-02-14",
         "eol": false,
@@ -29318,8 +29400,8 @@
         "cycle": "26.5",
         "releaseDate": "2026-01-06",
         "eol": false,
-        "latest": "26.5.3",
-        "latestReleaseDate": "2026-02-10",
+        "latest": "26.5.4",
+        "latestReleaseDate": "2026-02-20",
         "lts": false
       },
       {
@@ -29566,7 +29648,7 @@
       {
         "cycle": "8.18",
         "releaseDate": "2025-04-10",
-        "eol": false,
+        "eol": "2025-10-21",
         "latest": "8.18.8",
         "latestReleaseDate": "2025-10-02",
         "lts": false
@@ -29866,8 +29948,8 @@
         "releaseDate": "2025-06-24",
         "eol": false,
         "supportedPhpVersions": "8.2 - 8.4",
-        "latest": "5.3.0",
-        "latestReleaseDate": "2026-02-10",
+        "latest": "5.3.1",
+        "latestReleaseDate": "2026-02-16",
         "lts": false
       },
       {
@@ -30450,9 +30532,17 @@
     "productName": "kubernetes-csi-node-driver-registrar",
     "cycles": [
       {
+        "cycle": "2.16",
+        "releaseDate": "2026-02-12",
+        "eol": false,
+        "latest": "2.16.0",
+        "latestReleaseDate": "2026-02-12",
+        "lts": false
+      },
+      {
         "cycle": "2.15",
         "releaseDate": "2025-09-12",
-        "eol": false,
+        "eol": "2026-02-12",
         "latest": "2.15.0",
         "latestReleaseDate": "2025-09-12",
         "lts": false
@@ -30655,32 +30745,32 @@
         "cycle": "2.13",
         "releaseDate": "2025-12-22",
         "eol": "2028-06-22",
-        "latest": "2.13.1",
-        "latestReleaseDate": "2026-02-09",
+        "latest": "2.13.2",
+        "latestReleaseDate": "2026-02-20",
         "lts": false
       },
       {
         "cycle": "2.12",
         "releaseDate": "2025-09-09",
         "eol": "2026-09-09",
-        "latest": "2.12.6",
-        "latestReleaseDate": "2026-02-09",
+        "latest": "2.12.7",
+        "latestReleaseDate": "2026-02-20",
         "lts": false
       },
       {
         "cycle": "2.11",
         "releaseDate": "2025-06-10",
         "eol": "2026-06-10",
-        "latest": "2.11.9",
-        "latestReleaseDate": "2026-02-09",
+        "latest": "2.11.10",
+        "latestReleaseDate": "2026-02-20",
         "lts": false
       },
       {
         "cycle": "2.10",
         "releaseDate": "2025-03-20",
         "eol": "2026-03-20",
-        "latest": "2.10.10",
-        "latestReleaseDate": "2026-02-09",
+        "latest": "2.10.11",
+        "latestReleaseDate": "2026-02-20",
         "lts": false
       },
       {
@@ -30705,8 +30795,8 @@
         "cycle": "2.7",
         "releaseDate": "2024-04-19",
         "eol": "2026-10-19",
-        "latest": "2.7.21",
-        "latestReleaseDate": "2026-02-09",
+        "latest": "2.7.22",
+        "latestReleaseDate": "2026-02-20",
         "lts": true,
         "link": "https://github.com/kumahq/kuma/releases/tag/__LATEST__"
       },
@@ -30842,12 +30932,21 @@
     "productName": "kyverno",
     "cycles": [
       {
+        "cycle": "1.17",
+        "releaseDate": "2026-02-02",
+        "eol": false,
+        "latest": "1.17.1",
+        "latestReleaseDate": "2026-02-19",
+        "supportedK8sVersions": "1.32 - 1.35",
+        "lts": false
+      },
+      {
         "cycle": "1.16",
         "releaseDate": "2025-11-10",
         "eol": false,
         "latest": "1.16.3",
         "latestReleaseDate": "2026-01-27",
-        "supportedK8sVersions": "N/A",
+        "supportedK8sVersions": "1.31 - 1.34",
         "lts": false
       },
       {
@@ -30932,8 +31031,8 @@
         "releaseDate": "2025-02-24",
         "eol": "2027-02-24",
         "supportedPhpVersions": "8.2 - 8.5",
-        "latest": "12.51.0",
-        "latestReleaseDate": "2026-02-10",
+        "latest": "12.52.0",
+        "latestReleaseDate": "2026-02-17",
         "lts": false,
         "support": "2026-08-16"
       },
@@ -30952,8 +31051,8 @@
         "releaseDate": "2023-02-14",
         "eol": "2025-02-04",
         "supportedPhpVersions": "8.1 - 8.3",
-        "latest": "10.50.0",
-        "latestReleaseDate": "2025-11-28",
+        "latest": "10.50.2",
+        "latestReleaseDate": "2026-02-15",
         "lts": false,
         "support": "2024-08-06"
       },
@@ -31121,8 +31220,8 @@
         "cycle": "25.8",
         "releaseDate": "2025-07-09",
         "eol": "2026-06-12",
-        "latest": "25.8.4.2",
-        "latestReleaseDate": "2025-12-12",
+        "latest": "25.8.5.2",
+        "latestReleaseDate": "2026-02-16",
         "lts": false
       },
       {
@@ -31275,8 +31374,8 @@
         "cycle": "6.19",
         "releaseDate": "2026-02-08",
         "eol": false,
-        "latest": "6.19",
-        "latestReleaseDate": "2026-02-08",
+        "latest": "6.19.3",
+        "latestReleaseDate": "2026-02-19",
         "lts": false
       },
       {
@@ -31284,8 +31383,8 @@
         "lts": true,
         "releaseDate": "2025-11-30",
         "eol": "2027-12-01",
-        "latest": "6.18.10",
-        "latestReleaseDate": "2026-02-11"
+        "latest": "6.18.13",
+        "latestReleaseDate": "2026-02-19"
       },
       {
         "cycle": "6.17",
@@ -31332,8 +31431,8 @@
         "lts": true,
         "releaseDate": "2024-11-17",
         "eol": "2026-12-31",
-        "latest": "6.12.71",
-        "latestReleaseDate": "2026-02-12"
+        "latest": "6.12.74",
+        "latestReleaseDate": "2026-02-19"
       },
       {
         "cycle": "6.11",
@@ -31380,8 +31479,8 @@
         "lts": true,
         "releaseDate": "2023-10-30",
         "eol": "2026-12-31",
-        "latest": "6.6.124",
-        "latestReleaseDate": "2026-02-11"
+        "latest": "6.6.127",
+        "latestReleaseDate": "2026-02-19"
       },
       {
         "cycle": "6.5",
@@ -31420,8 +31519,8 @@
         "lts": true,
         "releaseDate": "2022-12-11",
         "eol": "2027-12-31",
-        "latest": "6.1.163",
-        "latestReleaseDate": "2026-02-11"
+        "latest": "6.1.164",
+        "latestReleaseDate": "2026-02-19"
       },
       {
         "cycle": "6.0",
@@ -31468,8 +31567,8 @@
         "lts": true,
         "releaseDate": "2021-10-31",
         "eol": "2026-10-31",
-        "latest": "5.15.200",
-        "latestReleaseDate": "2026-02-11"
+        "latest": "5.15.201",
+        "latestReleaseDate": "2026-02-19"
       },
       {
         "cycle": "5.14",
@@ -31508,8 +31607,8 @@
         "lts": true,
         "releaseDate": "2020-12-13",
         "eol": "2026-12-31",
-        "latest": "5.10.250",
-        "latestReleaseDate": "2026-02-11"
+        "latest": "5.10.251",
+        "latestReleaseDate": "2026-02-19"
       },
       {
         "cycle": "5.4",
@@ -32081,7 +32180,7 @@
       {
         "cycle": "8.18",
         "releaseDate": "2025-04-09",
-        "eol": false,
+        "eol": "2025-10-21",
         "latest": "8.18.8",
         "latestReleaseDate": "2025-09-30",
         "lts": false
@@ -32123,6 +32222,13 @@
   "looker": {
     "productName": "looker",
     "cycles": [
+      {
+        "cycle": "26.2",
+        "releaseDate": "2026-02-09",
+        "eol": "2026-04-30",
+        "link": "https://docs.cloud.google.com/looker/docs/release-notes#February_09_2026",
+        "lts": false
+      },
       {
         "cycle": "26.0",
         "releaseDate": "2026-01-08",
@@ -33829,6 +33935,14 @@
     "productName": "mattermost",
     "cycles": [
       {
+        "cycle": "11.4",
+        "releaseDate": "2026-02-16",
+        "eol": "2026-05-15",
+        "latest": "11.4.0",
+        "latestReleaseDate": "2026-02-04",
+        "lts": false
+      },
+      {
         "cycle": "11.3",
         "releaseDate": "2026-01-16",
         "eol": "2026-04-15",
@@ -34519,8 +34633,8 @@
         "cycle": "1.35",
         "releaseDate": "2026-02-02",
         "eol": false,
-        "latest": "1.35.0",
-        "latestReleaseDate": "2026-02-02",
+        "latest": "1.35.1",
+        "latestReleaseDate": "2026-02-16",
         "lts": false
       },
       {
@@ -35328,6 +35442,38 @@
     "productName": "motorola-mobility",
     "cycles": [
       {
+        "cycle": "moto-g77",
+        "releaseLabel": "Moto G77",
+        "releaseDate": "2026-01-01",
+        "eol": "2030-01-31",
+        "link": "https://en-us.support.motorola.com/app/software-security-update/g_id/7112/productid/12520",
+        "lts": false
+      },
+      {
+        "cycle": "moto-g67",
+        "releaseLabel": "Moto G67",
+        "releaseDate": "2026-01-01",
+        "eol": "2030-01-31",
+        "link": "https://en-us.support.motorola.com/app/software-security-update/g_id/7112/productid/12519",
+        "lts": false
+      },
+      {
+        "cycle": "moto-g17-power",
+        "releaseLabel": "Moto G17 Power",
+        "releaseDate": "2026-01-01",
+        "eol": "2028-01-31",
+        "link": "https://en-us.support.motorola.com/app/software-security-update/g_id/7112/productid/12521",
+        "lts": false
+      },
+      {
+        "cycle": "moto-g17",
+        "releaseLabel": "Moto G17",
+        "releaseDate": "2026-01-01",
+        "eol": "2028-01-31",
+        "link": "https://en-us.support.motorola.com/app/software-security-update/g_id/7112/productid/12522",
+        "lts": false
+      },
+      {
         "cycle": "motorola-signature",
         "releaseLabel": "Motorola Signature",
         "releaseDate": "2026-01-01",
@@ -36131,7 +36277,7 @@
         "cycle": "motorola-edge-2022",
         "releaseLabel": "Motorola Edge (2022)",
         "releaseDate": "2022-08-01",
-        "eol": "2025-08-31",
+        "eol": "2026-08-31",
         "link": "https://en-us.support.motorola.com/app/software-security-update/g_id/7112/productid/11319",
         "lts": false
       },
@@ -36499,9 +36645,9 @@
         "eol": "2036-01-06",
         "latestGdr": "17.0.1050.2",
         "latestGdrLink": "https://support.microsoft.com/help/5073177",
-        "latest": "17.0.4006.2 CU1",
-        "latestReleaseDate": "2026-01-29",
-        "link": "https://learn.microsoft.com/troubleshoot/sql/releases/sqlserver-2025/cumulativeupdate1",
+        "latest": "17.0.4015.4 CU2",
+        "latestReleaseDate": "2026-02-12",
+        "link": "https://learn.microsoft.com/troubleshoot/sql/releases/sqlserver-2025/cumulativeupdate2",
         "lts": false,
         "support": "2031-01-06",
         "extendedSupport": false
@@ -38017,6 +38163,18 @@
     "productName": "netapp-ontap",
     "cycles": [
       {
+        "cycle": "9.18.1",
+        "releaseDate": "2026-02-04",
+        "eol": "2028-09-30",
+        "lts": false
+      },
+      {
+        "cycle": "9.17.1",
+        "releaseDate": "2026-01-15",
+        "eol": "2028-09-30",
+        "lts": false
+      },
+      {
         "cycle": "9.16.1",
         "releaseDate": "2025-01-01",
         "eol": "2028-01-31",
@@ -38079,6 +38237,7 @@
       },
       {
         "cycle": "5.3",
+        "staleReleaseThresholdDays": 730,
         "releaseDate": "2023-11-27",
         "eol": false,
         "latest": "5.3.0.1 MR4",
@@ -38259,6 +38418,14 @@
   "nextcloud": {
     "productName": "nextcloud",
     "cycles": [
+      {
+        "cycle": "33",
+        "releaseDate": "2026-02-18",
+        "eol": "2027-02-28",
+        "latest": "33.0.0",
+        "latestReleaseDate": "2026-02-17",
+        "lts": false
+      },
       {
         "cycle": "32",
         "releaseDate": "2025-09-27",
@@ -40656,8 +40823,8 @@
         "cycle": "8.9",
         "releaseDate": "2025-12-27",
         "eol": false,
-        "latest": "8.9.1",
-        "latestReleaseDate": "2026-01-26",
+        "latest": "8.9.2",
+        "latestReleaseDate": "2026-02-16",
         "lts": false
       },
       {
@@ -40899,8 +41066,8 @@
         "cycle": "7.3",
         "releaseDate": "2025-06-24",
         "eol": "2027-06-30",
-        "latest": "7.3.1.2",
-        "latestReleaseDate": "2025-12-03",
+        "latest": "7.3.1.4",
+        "latestReleaseDate": "2026-02-16",
         "lts": false,
         "support": "2026-09-30"
       },
@@ -41091,13 +41258,22 @@
     "productName": "nutanix-files",
     "cycles": [
       {
+        "cycle": "5.3",
+        "releaseDate": "2026-01-30",
+        "eol": false,
+        "latest": "5.3",
+        "latestReleaseDate": "2026-01-30",
+        "lts": false,
+        "support": true
+      },
+      {
         "cycle": "5.2",
         "releaseDate": "2025-07-30",
-        "eol": false,
+        "eol": "2027-01-31",
         "latest": "5.2.1",
         "latestReleaseDate": "2025-10-29",
         "lts": false,
-        "support": true
+        "support": "2026-05-31"
       },
       {
         "cycle": "5.1",
@@ -43747,13 +43923,22 @@
     "productName": "openvpn",
     "cycles": [
       {
+        "cycle": "2.7",
+        "releaseDate": "2026-02-11",
+        "eol": false,
+        "latest": "2.7.0",
+        "latestReleaseDate": "2026-02-11",
+        "lts": false,
+        "support": true
+      },
+      {
         "cycle": "2.6",
         "releaseDate": "2023-01-25",
-        "eol": false,
+        "eol": "2028-08-31",
         "latest": "2.6.19",
         "latestReleaseDate": "2026-02-04",
         "lts": false,
-        "support": true
+        "support": "2026-08-31"
       },
       {
         "cycle": "2.5",
@@ -44988,9 +45173,9 @@
         "cycle": "12.1",
         "releaseDate": "2025-08-28",
         "eol": "2028-08-28",
-        "latest": "12.1.4-h2",
-        "latestReleaseDate": "2026-02-04",
-        "link": "https://docs.paloaltonetworks.com/ngfw/release-notes/12-1/pan-os-12-1-4-known-and-addressed-issues/pan-os-12-1-4-h2-addressed-issues",
+        "latest": "12.1.4-h3",
+        "latestReleaseDate": "2026-02-19",
+        "link": "https://docs.paloaltonetworks.com/ngfw/release-notes/12-1/pan-os-12-1-4-known-and-addressed-issues/pan-os-12-1-4-h3-addressed-issues",
         "lts": false
       },
       {
@@ -45690,7 +45875,7 @@
       },
       {
         "cycle": "4.9",
-        "staleReleaseThresholdDays": 1100,
+        "staleReleaseThresholdDays": 1200,
         "lts": true,
         "releaseDate": "2019-06-04",
         "eol": false,
@@ -46262,6 +46447,14 @@
     "productName": "plesk",
     "cycles": [
       {
+        "cycle": "18.0.76",
+        "releaseDate": "2026-02-16",
+        "eol": "2026-05-11",
+        "latest": "18.0.76.1",
+        "latestReleaseDate": "2026-02-18",
+        "lts": false
+      },
+      {
         "cycle": "18.0.75",
         "releaseDate": "2026-01-06",
         "eol": "2026-03-31",
@@ -46560,8 +46753,8 @@
         "cycle": "10",
         "releaseDate": "2025-01-07",
         "eol": false,
-        "latest": "10.29.3",
-        "latestReleaseDate": "2026-02-11",
+        "latest": "10.30.1",
+        "latestReleaseDate": "2026-02-20",
         "lts": false
       },
       {
@@ -46618,9 +46811,17 @@
     "productName": "podman",
     "cycles": [
       {
+        "cycle": "5.8",
+        "releaseDate": "2026-02-12",
+        "eol": false,
+        "latest": "5.8.0",
+        "latestReleaseDate": "2026-02-12",
+        "lts": false
+      },
+      {
         "cycle": "5.7",
         "releaseDate": "2025-11-11",
-        "eol": false,
+        "eol": "2026-02-12",
         "latest": "5.7.1",
         "latestReleaseDate": "2025-12-09",
         "lts": false
@@ -46892,8 +47093,8 @@
         "cycle": "3.10",
         "releaseDate": "2025-02-16",
         "eol": false,
-        "latest": "3.10.7",
-        "latestReleaseDate": "2025-12-08",
+        "latest": "3.10.8",
+        "latestReleaseDate": "2026-02-19",
         "link": "https://www.postfix.org/announcements/postfix-3.10.0.html",
         "lts": false
       },
@@ -46901,8 +47102,8 @@
         "cycle": "3.9",
         "releaseDate": "2024-03-06",
         "eol": false,
-        "latest": "3.9.8",
-        "latestReleaseDate": "2025-12-08",
+        "latest": "3.9.9",
+        "latestReleaseDate": "2026-02-19",
         "link": "https://www.postfix.org/announcements/postfix-3.9.2.html",
         "lts": false
       },
@@ -46910,8 +47111,8 @@
         "cycle": "3.8",
         "releaseDate": "2023-04-17",
         "eol": false,
-        "latest": "3.8.14",
-        "latestReleaseDate": "2025-12-08",
+        "latest": "3.8.15",
+        "latestReleaseDate": "2026-02-19",
         "link": "https://www.postfix.org/announcements/postfix-3.9.2.html",
         "lts": false
       },
@@ -46919,8 +47120,8 @@
         "cycle": "3.7",
         "releaseDate": "2022-02-06",
         "eol": false,
-        "latest": "3.7.19",
-        "latestReleaseDate": "2025-12-08",
+        "latest": "3.7.20",
+        "latestReleaseDate": "2026-02-19",
         "link": "https://www.postfix.org/announcements/postfix-3.9.2.html",
         "lts": false
       },
@@ -47382,7 +47583,7 @@
         "cycle": "7.5",
         "lts": false,
         "releaseDate": "2025-01-23",
-        "eol": "2026-05-12",
+        "eol": "2026-11-10",
         "latest": "7.5.4",
         "latestReleaseDate": "2025-10-16",
         "dotnetVersion": ".NET 9.0"
@@ -48405,8 +48606,8 @@
         "cycle": "3.31",
         "releaseDate": "2026-01-28",
         "eol": false,
-        "latest": "3.31.3",
-        "latestReleaseDate": "2026-02-11",
+        "latest": "3.31.4",
+        "latestReleaseDate": "2026-02-18",
         "link": "https://quarkus.io/blog/quarkus-3-31-released/",
         "lts": false,
         "extendedSupport": false
@@ -48915,8 +49116,8 @@
         "cycle": "4.2",
         "releaseDate": "2025-10-27",
         "eol": false,
-        "latest": "4.2.3",
-        "latestReleaseDate": "2026-01-21",
+        "latest": "4.2.4",
+        "latestReleaseDate": "2026-02-16",
         "lts": false,
         "extendedSupport": true
       },
@@ -49568,6 +49769,15 @@
     "productName": "react-native",
     "cycles": [
       {
+        "cycle": "0.84",
+        "releaseDate": "2026-02-11",
+        "eol": false,
+        "latest": "0.84.0",
+        "latestReleaseDate": "2026-02-11",
+        "lts": false,
+        "support": true
+      },
+      {
         "cycle": "0.83",
         "releaseDate": "2025-12-10",
         "eol": false,
@@ -49583,12 +49793,12 @@
         "latest": "0.82.1",
         "latestReleaseDate": "2025-10-20",
         "lts": false,
-        "support": true
+        "support": "2026-02-11"
       },
       {
         "cycle": "0.81",
         "releaseDate": "2025-08-12",
-        "eol": false,
+        "eol": "2026-02-11",
         "latest": "0.81.6",
         "latestReleaseDate": "2026-02-05",
         "lts": false,
@@ -50131,8 +50341,8 @@
         "cycle": "6.18",
         "releaseDate": "2025-11-04",
         "eol": false,
-        "latest": "6.18.2",
-        "latestReleaseDate": "2026-01-07",
+        "latest": "6.18.3",
+        "latestReleaseDate": "2026-02-16",
         "lts": false,
         "support": true
       },
@@ -50140,8 +50350,8 @@
         "cycle": "6.17",
         "releaseDate": "2025-05-06",
         "eol": "2026-11-30",
-        "latest": "6.17.6.2",
-        "latestReleaseDate": "2026-01-08",
+        "latest": "6.17.6.3",
+        "latestReleaseDate": "2026-02-16",
         "lts": false,
         "support": "2025-11-30"
       },
@@ -50149,8 +50359,8 @@
         "cycle": "6.16",
         "releaseDate": "2024-11-05",
         "eol": "2026-05-31",
-        "latest": "6.16.6",
-        "latestReleaseDate": "2026-01-08",
+        "latest": "6.16.6.1",
+        "latestReleaseDate": "2026-02-16",
         "lts": false,
         "support": "2025-05-31"
       },
@@ -50591,6 +50801,15 @@
   "rocket-chat": {
     "productName": "rocket-chat",
     "cycles": [
+      {
+        "cycle": "8.1",
+        "releaseDate": "2026-02-10",
+        "eol": "2026-08-31",
+        "latest": "8.1.1",
+        "latestReleaseDate": "2026-02-20",
+        "lts": false,
+        "support": "2026-02-10"
+      },
       {
         "cycle": "8.0",
         "releaseDate": "2026-01-12",
@@ -51456,8 +51675,8 @@
         "cycle": "14.0",
         "releaseDate": "2025-12-17",
         "eol": "2026-02-28",
-        "latest": "14.0.1.4",
-        "latestReleaseDate": "2026-02-12",
+        "latest": "14.0.1.5",
+        "latestReleaseDate": "2026-02-20",
         "lts": false
       },
       {
@@ -51465,8 +51684,8 @@
         "lts": true,
         "releaseDate": "2025-09-26",
         "eol": "2028-09-28",
-        "latest": "13.5.1.5",
-        "latestReleaseDate": "2026-02-12"
+        "latest": "13.5.1.6",
+        "latestReleaseDate": "2026-02-20"
       },
       {
         "cycle": "13.4",
@@ -52678,7 +52897,7 @@
         "cycle": "galaxy-tab-a8",
         "releaseLabel": "Galaxy Tab A8",
         "releaseDate": "2022-01-17",
-        "eol": false,
+        "eol": "2026-02-21",
         "link": "https://doc.samsungmobile.com/SM-X205/INS/doc.html",
         "lts": false,
         "support": "2025-01-17"
@@ -54299,7 +54518,7 @@
         "cycle": "galaxy-a03",
         "releaseLabel": "Galaxy A03",
         "releaseDate": "2022-01-21",
-        "eol": false,
+        "eol": "2026-02-21",
         "link": "https://doc.samsungmobile.com/SM-A035G/BTU/doc.html",
         "lts": false,
         "support": true
@@ -54623,28 +54842,28 @@
         "cycle": "galaxy-s21-ultra-5g",
         "releaseLabel": "Galaxy S21 Ultra 5G",
         "releaseDate": "2021-01-29",
-        "eol": false,
+        "eol": "2026-02-21",
         "link": "https://doc.samsungmobile.com/sm-g998b/dbt/doc.html",
         "lts": false,
-        "support": true
+        "support": "2025-10-06"
       },
       {
         "cycle": "galaxy-s21+-5g",
         "releaseLabel": "Galaxy S21+ 5G",
         "releaseDate": "2021-01-29",
-        "eol": false,
+        "eol": "2026-02-21",
         "link": "https://doc.samsungmobile.com/SM-G996B/DBT/doc.html",
         "lts": false,
-        "support": true
+        "support": "2025-10-06"
       },
       {
         "cycle": "galaxy-s21-5g",
         "releaseLabel": "Galaxy S21 5G",
         "releaseDate": "2021-01-29",
-        "eol": false,
+        "eol": "2026-02-21",
         "link": "https://doc.samsungmobile.com/SM-G991B/DBT/doc.html",
         "lts": false,
-        "support": true
+        "support": "2025-10-06"
       },
       {
         "cycle": "galaxy-a02",
@@ -57181,8 +57400,8 @@
         "lts": true,
         "releaseDate": "2023-09-18",
         "eol": "2028-09-01",
-        "latest": "21.0.10",
-        "latestReleaseDate": "2026-01-20"
+        "latest": "21.0.10.0.1",
+        "latestReleaseDate": "2026-02-17"
       },
       {
         "cycle": "20",
@@ -59207,8 +59426,8 @@
         "supportedJavaVersions": "17 - 25",
         "releaseDate": "2025-11-30",
         "eol": "2026-12-31",
-        "latest": "4.0.2",
-        "latestReleaseDate": "2026-01-22",
+        "latest": "4.0.3",
+        "latestReleaseDate": "2026-02-19",
         "lts": false,
         "extendedSupport": "2027-12-31"
       },
@@ -59217,8 +59436,8 @@
         "supportedJavaVersions": "17 - 25",
         "releaseDate": "2025-05-31",
         "eol": "2026-06-30",
-        "latest": "3.5.10",
-        "latestReleaseDate": "2026-01-22",
+        "latest": "3.5.11",
+        "latestReleaseDate": "2026-02-19",
         "lts": false,
         "extendedSupport": "2032-06-30"
       },
@@ -59378,8 +59597,8 @@
         "supportedJakartaEEVersions": "11 - 12",
         "releaseDate": "2025-11-30",
         "eol": "2027-06-30",
-        "latest": "7.0.4",
-        "latestReleaseDate": "2026-02-12",
+        "latest": "7.0.5",
+        "latestReleaseDate": "2026-02-18",
         "lts": false,
         "extendedSupport": "2028-06-30"
       },
@@ -59648,8 +59867,8 @@
         "eol": "2027-12-31",
         "supportedLaravelVersions": "12-13",
         "supportedPhpVersions": "8.3-8.5",
-        "latest": "6.3.0",
-        "latestReleaseDate": "2026-02-14",
+        "latest": "6.3.3",
+        "latestReleaseDate": "2026-02-20",
         "lts": false,
         "support": "2027-03-31"
       },
@@ -59659,8 +59878,8 @@
         "eol": "2026-12-31",
         "supportedLaravelVersions": "10-12",
         "supportedPhpVersions": "8.2-8.4",
-        "latest": "5.73.7",
-        "latestReleaseDate": "2026-02-14",
+        "latest": "5.73.10",
+        "latestReleaseDate": "2026-02-20",
         "lts": false,
         "support": "2026-03-31"
       },
@@ -60368,8 +60587,8 @@
         "cycle": "5",
         "releaseDate": "2024-10-19",
         "eol": false,
-        "latest": "5.51.0",
-        "latestReleaseDate": "2026-02-13",
+        "latest": "5.53.1",
+        "latestReleaseDate": "2026-02-21",
         "lts": false,
         "support": true,
         "extendedSupport": false
@@ -60752,9 +60971,17 @@
     "productName": "tailwind-css",
     "cycles": [
       {
+        "cycle": "4.2",
+        "releaseDate": "2026-02-18",
+        "eol": false,
+        "latest": "4.2.0",
+        "latestReleaseDate": "2026-02-18",
+        "lts": false
+      },
+      {
         "cycle": "4.1",
         "releaseDate": "2025-04-01",
-        "eol": false,
+        "eol": "2026-02-18",
         "latest": "4.1.18",
         "latestReleaseDate": "2025-12-11",
         "lts": false
@@ -61397,8 +61624,8 @@
         "cycle": "18",
         "releaseDate": "2025-07-04",
         "eol": false,
-        "latest": "18.6.8",
-        "latestReleaseDate": "2026-02-10",
+        "latest": "18.7.0",
+        "latestReleaseDate": "2026-02-17",
         "lts": false,
         "support": true
       },
@@ -61680,9 +61907,9 @@
         "lts": false
       },
       {
-        "cycle": "9",
+        "cycle": "9.0",
         "releaseDate": "2017-09-27",
-        "eol": false,
+        "eol": "2027-03-31",
         "minJavaVersion": "8",
         "latest": "9.0.115",
         "latestReleaseDate": "2026-01-21",
@@ -62052,8 +62279,8 @@
         "cycle": "14",
         "releaseDate": "2025-11-25",
         "eol": "2029-06-30",
-        "latest": "14.1.0",
-        "latestReleaseDate": "2026-01-20",
+        "latest": "14.1.1",
+        "latestReleaseDate": "2026-02-20",
         "lts": false,
         "support": "2027-12-31",
         "extendedSupport": "2032-06-30"
@@ -62062,8 +62289,8 @@
         "cycle": "13",
         "releaseDate": "2024-01-30",
         "eol": "2027-12-31",
-        "latest": "13.4.25",
-        "latestReleaseDate": "2026-02-10",
+        "latest": "13.4.26",
+        "latestReleaseDate": "2026-02-20",
         "lts": false,
         "support": "2026-06-30",
         "extendedSupport": "2030-12-31"
@@ -62072,8 +62299,8 @@
         "cycle": "12",
         "releaseDate": "2022-10-04",
         "eol": "2026-04-30",
-        "latest": "12.4.42",
-        "latestReleaseDate": "2026-01-20",
+        "latest": "12.4.43",
+        "latestReleaseDate": "2026-02-20",
         "lts": false,
         "support": "2024-10-31",
         "extendedSupport": "2029-04-30"
@@ -62616,8 +62843,8 @@
         "lts": true,
         "releaseDate": "2025-11-27",
         "eol": "2028-11-27",
-        "latest": "17.1.0",
-        "latestReleaseDate": "2026-01-07",
+        "latest": "17.2.0",
+        "latestReleaseDate": "2026-02-19",
         "support": "2027-11-27"
       },
       {
@@ -62726,16 +62953,18 @@
     "productName": "unity",
     "cycles": [
       {
-        "cycle": "6.3",
+        "cycle": "6000.3",
+        "releaseLabel": "6.3",
         "lts": true,
         "releaseDate": "2025-12-04",
         "eol": "2027-12-04",
-        "latest": "6000.3.7f1",
-        "latestReleaseDate": "2026-02-05",
+        "latest": "6000.3.9f1",
+        "latestReleaseDate": "2026-02-18",
         "extendedSupport": "2028-12-04"
       },
       {
-        "cycle": "6.2",
+        "cycle": "6000.2",
+        "releaseLabel": "6.2",
         "releaseDate": "2025-08-12",
         "eol": "2025-12-04",
         "latest": "6000.2.15f1",
@@ -62744,7 +62973,8 @@
         "extendedSupport": false
       },
       {
-        "cycle": "6.1",
+        "cycle": "6000.1",
+        "releaseLabel": "6.1",
         "releaseDate": "2025-04-23",
         "eol": "2025-08-12",
         "latest": "6000.1.17f1",
@@ -62753,12 +62983,13 @@
         "extendedSupport": false
       },
       {
-        "cycle": "6.0",
+        "cycle": "6000.0",
+        "releaseLabel": "6.0",
         "releaseDate": "2024-04-29",
         "lts": "2024-10-16",
         "eol": "2026-10-16",
-        "latest": "6000.0.66f1",
-        "latestReleaseDate": "2026-01-21",
+        "latest": "6000.0.68f1",
+        "latestReleaseDate": "2026-02-18",
         "extendedSupport": "2027-10-16"
       },
       {
@@ -63689,10 +63920,20 @@
     "productName": "visual-studio",
     "cycles": [
       {
+        "cycle": "18.3",
+        "codename": "2026",
+        "releaseDate": "2026-02-10",
+        "eol": false,
+        "latest": "18.3.1",
+        "latestReleaseDate": "2026-02-18",
+        "link": "https://learn.microsoft.com/visualstudio/releases/__CODENAME__/release-notes#__LATEST__",
+        "lts": false
+      },
+      {
         "cycle": "18.2",
         "codename": "2026",
         "releaseDate": "2026-01-13",
-        "eol": false,
+        "eol": "2026-02-10",
         "latest": "18.2.2",
         "latestReleaseDate": "2026-02-10",
         "link": "https://learn.microsoft.com/visualstudio/releases/__CODENAME__/release-notes#__LATEST__",
@@ -64723,8 +64964,8 @@
         "cycle": "3",
         "releaseDate": "2022-11-01",
         "eol": false,
-        "latest": "3.11.8",
-        "latestReleaseDate": "2026-01-27",
+        "latest": "3.12.0",
+        "latestReleaseDate": "2026-02-20",
         "lts": false,
         "support": true,
         "extendedSupport": false
@@ -67538,8 +67779,8 @@
         "cycle": "3.8",
         "releaseDate": "2022-02-25",
         "eol": false,
-        "latest": "3.8.5",
-        "latestReleaseDate": "2025-09-03",
+        "latest": "3.8.6",
+        "latestReleaseDate": "2026-01-28",
         "lts": false,
         "support": true
       },
