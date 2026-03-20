@@ -1,13 +1,8 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Technology, EOLDataMap } from '@/lib/types';
-import { validateTechnologyName } from '@/lib/validation';
 import { getVersionsForTechnology } from '@/lib/eol-data';
-
-function isKnownTechnology(value: string, availableTechnologies: string[]): boolean {
-  return availableTechnologies.some((tech) => tech === value);
-}
 
 interface TechnologyInputProps {
   technology: Technology;
@@ -17,184 +12,176 @@ interface TechnologyInputProps {
   onRemove: () => void;
 }
 
-export default function TechnologyInput({ 
-  technology, 
+type SuggestionField = 'tech' | 'version' | null;
+
+export default function TechnologyInput({
+  technology,
   availableTechnologies,
   eolData,
-  onChange, 
-  onRemove 
+  onChange,
+  onRemove,
 }: TechnologyInputProps) {
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
+  const [techNameInputValue, setTechNameInputValue] = useState(technology.name);
+  const [versionInputValue, setVersionInputValue] = useState(technology.currentVersion);
+  const [activeField, setActiveField] = useState<SuggestionField>(null);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
-  const [hasTechNameBlurred, setHasTechNameBlurred] = useState(false);
-  const [availableVersions, setAvailableVersions] = useState<string[]>([]);
-  
-  const techNameInputRef = useRef<HTMLInputElement>(null);
-  const suggestionsRef = useRef<HTMLDivElement>(null);
 
-  const validateTechnology = (value: string): string | null => {
-    const baseError = validateTechnologyName(value);
-    if (baseError) {
-      return baseError;
+  const closeSuggestions = () => {
+    setActiveField(null);
+  };
+
+  useEffect(() => {
+    setTechNameInputValue(technology.name);
+  }, [technology.name]);
+
+  useEffect(() => {
+    setVersionInputValue(technology.currentVersion);
+  }, [technology.currentVersion]);
+
+  useEffect(() => {
+    setSelectedSuggestionIndex(-1);
+  }, [activeField, techNameInputValue, versionInputValue]);
+
+  const availableVersions = useMemo(() => {
+    if (!eolData || !technology.name) {
+      return [];
     }
 
-    if (!isKnownTechnology(value.trim(), availableTechnologies)) {
-      return '正しい技術を入力してください';
+    return getVersionsForTechnology(eolData, technology.name);
+  }, [eolData, technology.name]);
+
+  const techSuggestions = useMemo(() => {
+    if (!techNameInputValue.trim()) {
+      return [];
     }
 
-    return null;
-  };
+    return availableTechnologies.filter((tech) =>
+      tech.toLowerCase().includes(techNameInputValue.toLowerCase())
+    );
+  }, [availableTechnologies, techNameInputValue]);
 
-  const techNameError = validateTechnology(technology.name);
-
-  // 技術名の変更処理
-  const handleTechNameChange = (value: string) => {
-    onChange({ ...technology, name: value });
-
-    // オートコンプリートのフィルタリング
-    if (value.trim()) {
-      const filtered = availableTechnologies.filter(tech =>
-        tech.toLowerCase().includes(value.toLowerCase())
-      );
-      setFilteredSuggestions(filtered);
-      setShowSuggestions(filtered.length > 0);
-      setSelectedSuggestionIndex(-1);
-    } else {
-      setShowSuggestions(false);
-      setFilteredSuggestions([]);
+  const versionSuggestions = useMemo(() => {
+    if (!availableVersions.length) {
+      return [];
     }
-  };
 
-  // バージョンの変更処理
-  const handleVersionChange = (value: string) => {
-    onChange({ ...technology, currentVersion: value });
-  };
+    if (!versionInputValue.trim()) {
+      return availableVersions;
+    }
 
-  // 候補選択処理
-  const handleSuggestionClick = (suggestion: string) => {
-    onChange({ ...technology, name: suggestion });
-    setShowSuggestions(false);
-    setFilteredSuggestions([]);
-  };
+    return availableVersions.filter((version) =>
+      version.toLowerCase().includes(versionInputValue.toLowerCase())
+    );
+  }, [availableVersions, versionInputValue]);
 
-  // キーボード操作処理
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!showSuggestions || filteredSuggestions.length === 0) return;
+  const handleSuggestionKeyDown = (
+    e: React.KeyboardEvent,
+    suggestions: string[],
+    inputValue: string,
+    onSelect: (suggestion: string) => void
+  ) => {
+    if (suggestions.length === 0) {
+      return;
+    }
 
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setSelectedSuggestionIndex(prev => 
-          prev < filteredSuggestions.length - 1 ? prev + 1 : 0
+        setSelectedSuggestionIndex((prev) =>
+          prev < suggestions.length - 1 ? prev + 1 : 0
         );
         break;
       case 'ArrowUp':
         e.preventDefault();
-        setSelectedSuggestionIndex(prev => 
-          prev > 0 ? prev - 1 : filteredSuggestions.length - 1
+        setSelectedSuggestionIndex((prev) =>
+          prev > 0 ? prev - 1 : suggestions.length - 1
         );
         break;
       case 'Enter':
         e.preventDefault();
         if (selectedSuggestionIndex >= 0) {
-          handleSuggestionClick(filteredSuggestions[selectedSuggestionIndex]);
+          onSelect(suggestions[selectedSuggestionIndex]);
+          return;
+        }
+
+        const exactMatch = suggestions.find(
+          (suggestion) => suggestion.toLowerCase() === inputValue.trim().toLowerCase()
+        );
+        if (exactMatch) {
+          onSelect(exactMatch);
         }
         break;
       case 'Escape':
-        setShowSuggestions(false);
-        setSelectedSuggestionIndex(-1);
+        closeSuggestions();
         break;
     }
   };
 
-  // 外部クリックで候補を閉じる
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        techNameInputRef.current &&
-        !techNameInputRef.current.contains(event.target as Node) &&
-        suggestionsRef.current &&
-        !suggestionsRef.current.contains(event.target as Node)
-      ) {
-        setShowSuggestions(false);
-        setSelectedSuggestionIndex(-1);
-      }
-    };
+  const selectTechnology = (suggestion: string) => {
+    onChange({ ...technology, name: suggestion, currentVersion: '' });
+    setTechNameInputValue(suggestion);
+    setVersionInputValue('');
+    closeSuggestions();
+  };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-  
-  // 技術名が変更された時にバージョンリストを更新
-  useEffect(() => {
-    if (!eolData) {
-      setAvailableVersions([]);
-      return;
-    }
-
-    if (technology.name) {
-      const versions = getVersionsForTechnology(eolData, technology.name);
-      setAvailableVersions(versions);
-
-      const latestVersion = versions[0] || '';
-      if (technology.currentVersion !== latestVersion && !versions.includes(technology.currentVersion)) {
-        onChange({ ...technology, currentVersion: latestVersion });
-      }
-    } else {
-      setAvailableVersions([]);
-
-      if (technology.currentVersion !== '') {
-        onChange({ ...technology, currentVersion: '' });
-      }
-    }
-  }, [technology, eolData, onChange]);
-
-  const hasErrors = hasTechNameBlurred && techNameError;
+  const selectVersion = (suggestion: string) => {
+    onChange({ ...technology, currentVersion: suggestion });
+    setVersionInputValue(suggestion);
+    closeSuggestions();
+  };
 
   return (
     <div className="space-y-1">
-      <div className={`flex flex-col sm:flex-row gap-2 items-start py-2 ${
-        hasErrors ? 'bg-red-50 rounded px-2 -mx-2' : ''
-      }`}>
-        {/* 技術名入力フィールド（オートコンプリート付き） */}
+      <div className="flex flex-col sm:flex-row gap-2 items-start py-2">
         <div className="flex-1 relative w-full sm:w-auto">
           <label className="block text-xs font-medium text-gray-600 mb-1 sm:hidden">
             技術名
           </label>
           <input
-            ref={techNameInputRef}
             type="text"
             placeholder="例: python, nodejs, mysql"
-            value={technology.name}
-            onChange={(e) => handleTechNameChange(e.target.value)}
-            onFocus={() => {
-              setHasTechNameBlurred(false);
-              if (technology.name.trim() && filteredSuggestions.length > 0) {
-                setShowSuggestions(true);
-              }
+            value={techNameInputValue}
+            onChange={(e) => {
+              setTechNameInputValue(e.target.value);
+              setActiveField('tech');
             }}
-            onBlur={() => setHasTechNameBlurred(true)}
-            onKeyDown={handleKeyDown}
-            className={`w-full px-3 py-2 bg-gray-50 border rounded text-sm sm:text-base transition-colors ${
-              hasTechNameBlurred && techNameError ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:bg-white focus:bg-white'
-            } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+            onFocus={() => {
+              setActiveField('tech');
+            }}
+            onBlur={() => {
+              if (techNameInputValue.trim() === '') {
+                onChange({ ...technology, name: '', currentVersion: '' });
+                setTechNameInputValue('');
+                setVersionInputValue('');
+              } else {
+                setTechNameInputValue(technology.name);
+              }
+
+              closeSuggestions();
+            }}
+            onKeyDown={(e) => handleSuggestionKeyDown(e, techSuggestions, techNameInputValue, selectTechnology)}
+            className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded text-sm sm:text-base transition-colors hover:bg-white focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded={activeField === 'tech' && techSuggestions.length > 0}
+            aria-controls="technology-suggestions"
+            aria-activedescendant={selectedSuggestionIndex >= 0 ? `technology-option-${selectedSuggestionIndex}` : undefined}
           />
-          
-          {/* オートコンプリート候補 */}
-          {showSuggestions && filteredSuggestions.length > 0 && (
-            <div
-              ref={suggestionsRef}
-              className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto"
-            >
-              {filteredSuggestions.map((suggestion, index) => (
+
+          {activeField === 'tech' && techSuggestions.length > 0 && (
+            <div id="technology-suggestions" role="listbox" className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+              {techSuggestions.map((suggestion, index) => (
                 <div
+                  id={`technology-option-${index}`}
                   key={suggestion}
-                  onClick={() => handleSuggestionClick(suggestion)}
+                  role="option"
+                  aria-selected={index === selectedSuggestionIndex}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    selectTechnology(suggestion);
+                  }}
                   className={`px-3 py-2 cursor-pointer text-sm ${
-                    index === selectedSuggestionIndex
-                      ? 'bg-blue-100 text-blue-900'
-                      : 'hover:bg-gray-100'
+                    index === selectedSuggestionIndex ? 'bg-gray-100' : 'hover:bg-gray-100'
                   }`}
                 >
                   {suggestion}
@@ -204,27 +191,63 @@ export default function TechnologyInput({
           )}
         </div>
 
-        {/* バージョン選択フィールド */}
-        <div className="w-full sm:w-32">
+        <div className="w-full sm:w-32 relative">
           <label className="block text-xs font-medium text-gray-600 mb-1 sm:hidden">
             バージョン
           </label>
-          <select
-            value={technology.currentVersion}
-            onChange={(e) => handleVersionChange(e.target.value)}
-            disabled={availableVersions.length === 0}
-            className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded text-sm sm:text-base transition-colors hover:bg-white focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
-          >
-            {availableVersions.length === 0 && <option value=""></option>}
-            {availableVersions.map((version) => (
-              <option key={version} value={version}>
-                {version}
-              </option>
-            ))}
-          </select>
+          <input
+            type="text"
+            placeholder="例: 3.9, 18"
+            value={versionInputValue}
+            onChange={(e) => {
+              setVersionInputValue(e.target.value);
+              setActiveField('version');
+            }}
+            onFocus={() => {
+              setActiveField('version');
+            }}
+            onBlur={() => {
+              if (versionInputValue.trim() === '') {
+                onChange({ ...technology, currentVersion: '' });
+                setVersionInputValue('');
+              } else {
+                setVersionInputValue(technology.currentVersion);
+              }
+
+              closeSuggestions();
+            }}
+            onKeyDown={(e) => handleSuggestionKeyDown(e, versionSuggestions, versionInputValue, selectVersion)}
+            className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded text-sm sm:text-base transition-colors hover:bg-white focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded={activeField === 'version' && versionSuggestions.length > 0}
+            aria-controls="version-suggestions"
+            aria-activedescendant={selectedSuggestionIndex >= 0 ? `version-option-${selectedSuggestionIndex}` : undefined}
+          />
+
+          {activeField === 'version' && versionSuggestions.length > 0 && (
+            <div id="version-suggestions" role="listbox" className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+              {versionSuggestions.map((suggestion, index) => (
+                <div
+                  id={`version-option-${index}`}
+                  key={suggestion}
+                  role="option"
+                  aria-selected={index === selectedSuggestionIndex}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    selectVersion(suggestion);
+                  }}
+                  className={`px-3 py-2 cursor-pointer text-sm ${
+                    index === selectedSuggestionIndex ? 'bg-gray-100' : 'hover:bg-gray-100'
+                  }`}
+                >
+                  {suggestion}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* 削除ボタン */}
         <button
           onClick={onRemove}
           className="w-full sm:w-auto px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors text-sm flex items-center justify-center gap-1"
@@ -236,16 +259,6 @@ export default function TechnologyInput({
           削除
         </button>
       </div>
-
-      {/* バリデーションエラー表示 */}
-      {hasTechNameBlurred && techNameError && (
-        <div className="text-sm text-red-600 space-y-1">
-          <div className="flex items-center gap-1">
-            <span className="text-red-500">⚠</span>
-            <span>{techNameError}</span>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

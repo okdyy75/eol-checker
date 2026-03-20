@@ -4,7 +4,6 @@ import userEvent from '@testing-library/user-event';
 import TechnologyInput from '../TechnologyInput';
 import { Technology, EOLDataMap } from '@/lib/types';
 
-// モックデータ
 const mockTechnology: Technology = {
   id: 'tech-1',
   name: 'python',
@@ -21,7 +20,7 @@ const mockAvailableTechnologies = [
 ];
 
 const mockEOLData: EOLDataMap = {
-  'python': {
+  python: {
     productName: 'python',
     cycles: [
       { cycle: '3.11', releaseDate: '2022-10-24', eol: '2027-10-24' },
@@ -29,7 +28,7 @@ const mockEOLData: EOLDataMap = {
       { cycle: '3.9', releaseDate: '2020-10-05', eol: '2025-10-05' }
     ]
   },
-  'nodejs': {
+  nodejs: {
     productName: 'nodejs',
     cycles: [
       { cycle: '20', releaseDate: '2023-04-18', eol: '2026-04-30' },
@@ -58,7 +57,7 @@ describe('TechnologyInput', () => {
     );
 
     expect(screen.getByDisplayValue('python')).toBeInTheDocument();
-    expect(screen.getByRole('combobox')).toHaveValue('3.9');
+    expect(screen.getByDisplayValue('3.9')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '削除' })).toBeInTheDocument();
   });
 
@@ -74,12 +73,10 @@ describe('TechnologyInput', () => {
     );
 
     expect(screen.queryByText('正しい技術を入力してください')).not.toBeInTheDocument();
-    expect(screen.getByRole('combobox')).toBeDisabled();
+    expect(screen.queryByText('正しいバージョンを入力してください')).not.toBeInTheDocument();
   });
 
-  it('技術名を入力できる', async () => {
-    const user = userEvent.setup();
-    
+  it('技術名の入力中は候補表示だけ行い、確定値は更新しない', () => {
     render(
       <TechnologyInput
         technology={{ ...mockTechnology, name: '' }}
@@ -91,21 +88,17 @@ describe('TechnologyInput', () => {
     );
 
     const techNameInput = screen.getByPlaceholderText('例: python, nodejs, mysql');
-    
-    // fireEventを使用して直接changeイベントを発火
     fireEvent.change(techNameInput, { target: { value: 'node' } });
 
-    // onChangeが正しい値で呼ばれたことを確認
-    expect(mockOnChange).toHaveBeenCalledWith({
-      ...mockTechnology,
-      name: 'node'
-    });
+    expect(mockOnChange).not.toHaveBeenCalled();
+    expect(techNameInput).toHaveValue('node');
+    expect(screen.getByText('nodejs')).toBeInTheDocument();
   });
 
-  it('バージョンを選択できる', () => {
+  it('バージョンの入力中は候補表示だけ行い、確定値は更新しない', () => {
     render(
       <TechnologyInput
-        technology={{ ...mockTechnology, currentVersion: '' }}
+        technology={mockTechnology}
         availableTechnologies={mockAvailableTechnologies}
         onChange={mockOnChange}
         onRemove={mockOnRemove}
@@ -113,62 +106,17 @@ describe('TechnologyInput', () => {
       />
     );
 
-    const versionSelect = screen.getByRole('combobox');
-    fireEvent.change(versionSelect, { target: { value: '3.10' } });
+    const versionInput = screen.getByPlaceholderText('例: 3.9, 18');
+    fireEvent.focus(versionInput);
+    fireEvent.change(versionInput, { target: { value: '3.1' } });
 
-    expect(mockOnChange).toHaveBeenCalledWith({
-      ...mockTechnology,
-      currentVersion: '3.10'
-    });
-  });
-
-  it('技術未選択時はバージョン選択を無効化する', () => {
-    render(
-      <TechnologyInput
-        technology={{ ...mockTechnology, name: '', currentVersion: '' }}
-        availableTechnologies={mockAvailableTechnologies}
-        onChange={mockOnChange}
-        onRemove={mockOnRemove}
-        eolData={mockEOLData}
-      />
-    );
-
-    expect(screen.getByRole('combobox')).toBeDisabled();
-    expect(screen.getByRole('combobox')).toHaveValue('');
-  });
-
-  it('技術を選ぶと最新バージョンが自動選択される', async () => {
-    const StatefulTechnologyInput = () => {
-      const [technology, setTechnology] = React.useState<Technology>({
-        ...mockTechnology,
-        name: '',
-        currentVersion: '',
-      });
-
-      return (
-        <TechnologyInput
-          technology={technology}
-          availableTechnologies={mockAvailableTechnologies}
-          onChange={setTechnology}
-          onRemove={mockOnRemove}
-          eolData={mockEOLData}
-        />
-      );
-    };
-
-    render(<StatefulTechnologyInput />);
-
-    const techNameInput = screen.getByPlaceholderText('例: python, nodejs, mysql');
-    fireEvent.change(techNameInput, { target: { value: 'python' } });
-
-    await waitFor(() => {
-      expect(screen.getByRole('combobox')).toHaveValue('3.11');
-    });
+    expect(mockOnChange).not.toHaveBeenCalled();
+    expect(versionInput).toHaveValue('3.1');
   });
 
   it('削除ボタンをクリックすると削除処理が呼ばれる', async () => {
     const user = userEvent.setup();
-    
+
     render(
       <TechnologyInput
         technology={mockTechnology}
@@ -187,7 +135,7 @@ describe('TechnologyInput', () => {
 
   it('技術名入力時にオートコンプリート候補が表示される', async () => {
     const user = userEvent.setup();
-    
+
     render(
       <TechnologyInput
         technology={{ ...mockTechnology, name: '' }}
@@ -208,7 +156,7 @@ describe('TechnologyInput', () => {
 
   it('オートコンプリート候補をクリックすると選択される', async () => {
     const user = userEvent.setup();
-    
+
     render(
       <TechnologyInput
         technology={{ ...mockTechnology, name: '' }}
@@ -230,13 +178,14 @@ describe('TechnologyInput', () => {
 
     expect(mockOnChange).toHaveBeenCalledWith({
       ...mockTechnology,
-      name: 'nodejs'
+      name: 'nodejs',
+      currentVersion: ''
     });
   });
 
   it('キーボードでオートコンプリート候補を選択できる', async () => {
     const user = userEvent.setup();
-    
+
     render(
       <TechnologyInput
         technology={{ ...mockTechnology, name: '' }}
@@ -254,20 +203,110 @@ describe('TechnologyInput', () => {
       expect(screen.getByText('nodejs')).toBeInTheDocument();
     });
 
-    // 下矢印キーで候補を選択
     fireEvent.keyDown(techNameInput, { key: 'ArrowDown' });
-    // Enterキーで確定
     fireEvent.keyDown(techNameInput, { key: 'Enter' });
 
     expect(mockOnChange).toHaveBeenCalledWith({
       ...mockTechnology,
-      name: 'nodejs'
+      name: 'nodejs',
+      currentVersion: ''
+    });
+  });
+
+  it('候補を選ばずに技術名入力を離れると元の値に戻る', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <TechnologyInput
+        technology={mockTechnology}
+        availableTechnologies={mockAvailableTechnologies}
+        onChange={mockOnChange}
+        onRemove={mockOnRemove}
+        eolData={mockEOLData}
+      />
+    );
+
+    const techNameInput = screen.getByPlaceholderText('例: python, nodejs, mysql');
+    await user.clear(techNameInput);
+    await user.type(techNameInput, 'unknown-tech');
+    fireEvent.blur(techNameInput);
+
+    expect(techNameInput).toHaveValue('python');
+    expect(mockOnChange).not.toHaveBeenCalled();
+  });
+
+  it('技術名を空にして離れると技術をクリアする', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <TechnologyInput
+        technology={mockTechnology}
+        availableTechnologies={mockAvailableTechnologies}
+        onChange={mockOnChange}
+        onRemove={mockOnRemove}
+        eolData={mockEOLData}
+      />
+    );
+
+    const techNameInput = screen.getByPlaceholderText('例: python, nodejs, mysql');
+    await user.clear(techNameInput);
+    fireEvent.blur(techNameInput);
+
+    expect(mockOnChange).toHaveBeenCalledWith({
+      ...mockTechnology,
+      name: '',
+      currentVersion: ''
+    });
+  });
+
+  it('候補を選ばずにバージョン入力を離れると元の値に戻る', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <TechnologyInput
+        technology={mockTechnology}
+        availableTechnologies={mockAvailableTechnologies}
+        onChange={mockOnChange}
+        onRemove={mockOnRemove}
+        eolData={mockEOLData}
+      />
+    );
+
+    const versionInput = screen.getByPlaceholderText('例: 3.9, 18');
+    await user.clear(versionInput);
+    await user.type(versionInput, '9.9');
+    fireEvent.blur(versionInput);
+
+    expect(versionInput).toHaveValue('3.9');
+    expect(mockOnChange).not.toHaveBeenCalled();
+  });
+
+  it('バージョンを空にして離れるとバージョンをクリアする', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <TechnologyInput
+        technology={mockTechnology}
+        availableTechnologies={mockAvailableTechnologies}
+        onChange={mockOnChange}
+        onRemove={mockOnRemove}
+        eolData={mockEOLData}
+      />
+    );
+
+    const versionInput = screen.getByPlaceholderText('例: 3.9, 18');
+    await user.clear(versionInput);
+    fireEvent.blur(versionInput);
+
+    expect(mockOnChange).toHaveBeenCalledWith({
+      ...mockTechnology,
+      currentVersion: ''
     });
   });
 
   it('Escapeキーでオートコンプリート候補を閉じる', async () => {
     const user = userEvent.setup();
-    
+
     render(
       <TechnologyInput
         technology={{ ...mockTechnology, name: '' }}
@@ -292,121 +331,9 @@ describe('TechnologyInput', () => {
     });
   });
 
-  it('空の技術名でバリデーションエラーが表示される', async () => {
-    const user = userEvent.setup();
-    
-    render(
-      <TechnologyInput
-        technology={{ ...mockTechnology, name: '' }}
-        availableTechnologies={mockAvailableTechnologies}
-        onChange={mockOnChange}
-        onRemove={mockOnRemove}
-        eolData={mockEOLData}
-      />
-    );
-
-    const techNameInput = screen.getByPlaceholderText('例: python, nodejs, mysql');
-    await user.type(techNameInput, ' '); // 空白文字を入力
-    await user.clear(techNameInput); // クリア
-    fireEvent.blur(techNameInput);
-
-    await waitFor(() => {
-      expect(screen.getByText('正しい技術を入力してください')).toBeInTheDocument();
-    });
-  });
-
-  it('存在しない技術名でバリデーションエラーが表示される', async () => {
-    const user = userEvent.setup();
-
-    render(
-      <TechnologyInput
-        technology={{ ...mockTechnology, name: '' }}
-        availableTechnologies={mockAvailableTechnologies}
-        onChange={mockOnChange}
-        onRemove={mockOnRemove}
-        eolData={mockEOLData}
-      />
-    );
-
-    const techNameInput = screen.getByPlaceholderText('例: python, nodejs, mysql');
-    await user.type(techNameInput, 'unknown-tech');
-    fireEvent.blur(techNameInput);
-
-    await waitFor(() => {
-      expect(screen.getByText('正しい技術を入力してください')).toBeInTheDocument();
-    });
-  });
-
-  it('技術変更時に不正なバージョンは最新バージョンに置き換わる', async () => {
-    const StatefulTechnologyInput = () => {
-      const [technology, setTechnology] = React.useState<Technology>(mockTechnology);
-
-      return (
-        <TechnologyInput
-          technology={technology}
-          availableTechnologies={mockAvailableTechnologies}
-          onChange={setTechnology}
-          onRemove={mockOnRemove}
-          eolData={mockEOLData}
-        />
-      );
-    };
-
-    render(<StatefulTechnologyInput />);
-
-    const techNameInput = screen.getByPlaceholderText('例: python, nodejs, mysql');
-    fireEvent.change(techNameInput, { target: { value: 'nodejs' } });
-
-    await waitFor(() => {
-      expect(screen.getByRole('combobox')).toHaveValue('20');
-    });
-  });
-
-  it('入力中は存在しない技術名でもエラーを表示しない', async () => {
-    const user = userEvent.setup();
-
-    render(
-      <TechnologyInput
-        technology={{ ...mockTechnology, name: '' }}
-        availableTechnologies={mockAvailableTechnologies}
-        onChange={mockOnChange}
-        onRemove={mockOnRemove}
-        eolData={mockEOLData}
-      />
-    );
-
-    const techNameInput = screen.getByPlaceholderText('例: python, nodejs, mysql');
-    await user.type(techNameInput, 'unknown-tech');
-
-    expect(screen.queryByText('正しい技術を入力してください')).not.toBeInTheDocument();
-  });
-
-  it('バリデーションエラーがある場合、フィールドが赤色で表示される', async () => {
-    const user = userEvent.setup();
-    
-    render(
-      <TechnologyInput
-        technology={{ ...mockTechnology, name: '', currentVersion: '' }}
-        availableTechnologies={mockAvailableTechnologies}
-        onChange={mockOnChange}
-        onRemove={mockOnRemove}
-        eolData={mockEOLData}
-      />
-    );
-
-    const techNameInput = screen.getByPlaceholderText('例: python, nodejs, mysql');
-    await user.type(techNameInput, ' ');
-    await user.clear(techNameInput);
-    fireEvent.blur(techNameInput);
-
-    await waitFor(() => {
-      expect(techNameInput).toHaveClass('border-red-500');
-    });
-  });
-
   it('外部クリックでオートコンプリート候補が閉じる', async () => {
     const user = userEvent.setup();
-    
+
     render(
       <div>
         <TechnologyInput
@@ -427,7 +354,6 @@ describe('TechnologyInput', () => {
       expect(screen.getByText('nodejs')).toBeInTheDocument();
     });
 
-    // 外部要素をクリック
     await user.click(screen.getByTestId('outside'));
 
     await waitFor(() => {
