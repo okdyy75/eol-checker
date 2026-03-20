@@ -9,7 +9,8 @@ export const metadata: Metadata = {
   authors: [{ name: 'EOL Timeline Viewer' }],
   robots: 'index, follow',
   icons: {
-    icon: '/icon.svg',
+    icon: [{ url: '/icon.svg', type: 'image/svg+xml' }],
+    shortcut: ['/icon.svg'],
   },
   openGraph: {
     title: 'EOL Timeline Viewer',
