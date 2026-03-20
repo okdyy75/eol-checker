@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, Suspense } from 'react';
+import Link from 'next/link';
 import ServiceForm from '@/components/ServiceForm';
 import EOLGanttChart from '@/components/EOLGanttChart';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -75,9 +76,9 @@ function HomeContent() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-4 gap-4">
               <div className="text-center sm:text-left">
-                <a href="/" className="inline-block hover:opacity-80 transition-opacity">
+                <Link href="/" className="inline-block hover:opacity-80 transition-opacity">
                   <h1 className="text-xl sm:text-2xl font-bold text-gray-900">EOL Timeline Viewer</h1>
-                </a>
+                </Link>
                 <p className="text-xs sm:text-sm text-gray-600 mt-1">
                   技術スタックのEnd of Life情報を視覚的に確認
                 </p>

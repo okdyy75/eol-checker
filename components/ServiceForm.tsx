@@ -113,93 +113,7 @@ export default function ServiceForm({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* 左側：サービスリスト */}
-      <div className="space-y-4">
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">
-            サービス一覧 ({services.length})
-          </h3>
-          
-          {services.length === 0 ? (
-            <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-              <p className="text-gray-500 text-sm">サービスがありません</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {services.map((service, index) => (
-                <div
-                  key={service.id}
-                  onClick={() => selectService(index)}
-                  className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                    editingIndex === index
-                      ? 'border-blue-500 bg-blue-50 shadow-sm ring-1 ring-blue-200'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 hover:shadow-sm'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-gray-900 truncate">
-                        {service.name || '(名前なし)'}
-                      </h4>
-                      <p className="text-xs text-gray-500 mt-1">
-                        技術: {service.technologies.length}件
-                      </p>
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeService(index);
-                      }}
-                      className="ml-2 px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors flex-shrink-0 flex items-center gap-1"
-                      title="このサービスを削除"
-                    >
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                      削除
-                    </button>
-                  </div>
-                  
-                  {/* 技術一覧のプレビュー */}
-                  {service.technologies.length > 0 && (
-                    <div className="mt-2 pt-2 border-t border-gray-200">
-                      <div className="flex flex-wrap gap-1">
-                        {service.technologies.slice(0, 3).map((tech) => (
-                          <span
-                            key={tech.id}
-                            className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-700"
-                          >
-                            {tech.name || '?'}
-                            {tech.currentVersion && ` ${tech.currentVersion}`}
-                          </span>
-                        ))}
-                        {service.technologies.length > 3 && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-500">
-                            +{service.technologies.length - 3}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-          
-          {/* サービスを追加ボタン */}
-          <button
-            onClick={addNewService}
-            className="w-full mt-4 px-4 py-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all text-sm font-medium flex items-center justify-center gap-2 shadow-sm hover:shadow"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            サービスを追加
-          </button>
-        </div>
-      </div>
-
-      {/* 右側：入力フォーム */}
+      {/* 左側：入力フォーム */}
       <div className="space-y-4">
         {services.length === 0 ? (
           <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-8 text-center">
@@ -207,7 +121,7 @@ export default function ServiceForm({
               サービスを追加してください
             </p>
             <p className="text-gray-400 text-xs">
-              左側の「サービスを追加」ボタンをクリック
+              右側の「サービスを追加」ボタンをクリック
             </p>
           </div>
         ) : (
@@ -222,7 +136,7 @@ export default function ServiceForm({
                 </span>
               </div>
             </div>
-            
+
             {/* サービス名入力 */}
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -280,6 +194,90 @@ export default function ServiceForm({
             </div>
           </div>
         )}
+      </div>
+
+      {/* 右側：サービスリスト */}
+      <div className="space-y-4">
+        <div className="bg-white border border-gray-200 rounded-lg p-4">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            サービス一覧 ({services.length})
+          </h3>
+
+          {services.length === 0 ? (
+            <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+              <p className="text-gray-500 text-sm">サービスがありません</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {services.map((service, index) => (
+                <div
+                  key={service.id}
+                  onClick={() => selectService(index)}
+                  className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                    editingIndex === index
+                      ? 'border-blue-500 bg-blue-50 shadow-sm ring-1 ring-blue-200'
+                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50 hover:shadow-sm'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-gray-900 truncate">
+                        {service.name || '(名前なし)'}
+                      </h4>
+                      <p className="text-xs text-gray-500 mt-1">
+                        技術: {service.technologies.length}件
+                      </p>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeService(index);
+                      }}
+                      className="ml-2 px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors flex-shrink-0 flex items-center gap-1"
+                      title="このサービスを削除"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      削除
+                    </button>
+                  </div>
+
+                  {service.technologies.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-gray-200">
+                      <div className="flex flex-wrap gap-1">
+                        {service.technologies.slice(0, 3).map((tech) => (
+                          <span
+                            key={tech.id}
+                            className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-700"
+                          >
+                            {tech.name || '?'}
+                            {tech.currentVersion && ` ${tech.currentVersion}`}
+                          </span>
+                        ))}
+                        {service.technologies.length > 3 && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-500">
+                            +{service.technologies.length - 3}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          <button
+            onClick={addNewService}
+            className="w-full mt-4 px-4 py-2.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all text-sm font-medium flex items-center justify-center gap-2 shadow-sm hover:shadow"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            サービスを追加
+          </button>
+        </div>
       </div>
     </div>
   );

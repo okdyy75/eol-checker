@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useCallback, useState } from 'react';
+import React, { useMemo, useCallback, useEffect, useState } from 'react';
 import { Gantt, Task, ViewMode } from 'gantt-task-react';
 import 'gantt-task-react/dist/index.css';
 import { Service, EOLDataMap } from '../lib/types';
@@ -56,9 +56,7 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
   }, []);
 
   // アコーディオンの開閉状態を管理（デフォルトですべて開く）
-  const [openServices, setOpenServices] = useState<Set<string>>(() => {
-    return new Set(services.map(s => s.name));
-  });
+  const [openServices, setOpenServices] = useState<Set<string>>(new Set());
 
   // 画面幅に応じたlistCellWidthを計算
   const [listCellWidth, setListCellWidth] = useState('200px');
@@ -187,11 +185,31 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
       });
 
       return {
+        serviceId: service.id,
         serviceName: service.name,
         tasks,
       };
     }).filter(chart => chart.tasks.length > 0); // タスクが空のサービスは除外
   }, [services, eolData, getStageColor]);
+
+  useEffect(() => {
+    setOpenServices(prev => {
+      const availableServiceIds = new Set(serviceCharts.map(chart => chart.serviceId));
+      const next = new Set<string>();
+
+      prev.forEach(serviceId => {
+        if (availableServiceIds.has(serviceId)) {
+          next.add(serviceId);
+        }
+      });
+
+      serviceCharts.forEach(chart => {
+        next.add(chart.serviceId);
+      });
+
+      return next;
+    });
+  }, [serviceCharts]);
 
   // データが空の場合の表示
   if (!services.length || !serviceCharts.length || serviceCharts.every(chart => !chart.tasks.length)) {
@@ -242,13 +260,13 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
       {/* サービスごとにアコーディオン形式でガントチャートを表示 */}
       <div className="services-list">
         {serviceCharts.map((chart, index) => {
-          const isOpen = openServices.has(chart.serviceName);
+          const isOpen = openServices.has(chart.serviceId);
           const isLast = index === serviceCharts.length - 1;
 
           return (
             <div key={index} className={`service-gantt-section ${isLast ? 'last' : ''}`}>
               <button
-                onClick={() => toggleService(chart.serviceName)}
+                onClick={() => toggleService(chart.serviceId)}
                 className="service-title-button"
               >
                 <span className="service-title-text">{chart.serviceName}</span>
