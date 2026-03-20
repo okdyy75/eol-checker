@@ -308,16 +308,31 @@ describe('url-state', () => {
       expect(decoded.services[0].technologies[0].currentVersion).toBe('18.0.0-beta');
     });
 
-    it('不正な形式の場合はエラーをスローする', () => {
-      expect(() => decodeURLState('!!!invalid!!!')).toThrow(/Invalid format/);
+    it('不正な形式はスキップして空のサービス配列を返す', () => {
+      expect(decodeURLState('!!!invalid!!!')).toEqual({
+        version: 1,
+        services: [],
+      });
     });
 
-    it('括弧が欠けている場合はエラーをスローする', () => {
-      expect(() => decodeURLState('myapp:python:3.9')).toThrow(/missing parentheses/);
+    it('括弧が欠けている場合は該当サービスをスキップする', () => {
+      expect(decodeURLState('myapp:python:3.9')).toEqual({
+        version: 1,
+        services: [],
+      });
     });
 
-    it('コロンが欠けている場合はエラーをスローする', () => {
-      expect(() => decodeURLState('myapp(python,nodejs)')).toThrow(/missing colon/);
+    it('コロンが欠けている技術はスキップし、空のサービスとして残す', () => {
+      expect(decodeURLState('myapp(python,nodejs)')).toEqual({
+        version: 1,
+        services: [
+          {
+            id: 'service-0',
+            name: 'myapp',
+            technologies: [],
+          },
+        ],
+      });
     });
   });
 
@@ -487,7 +502,7 @@ describe('url-state', () => {
       expect(result.data?.services[0].technologies[0].currentVersion).toBe('3.9');
     });
 
-    it('無効なURLパラメータの場合はエラーを返す', () => {
+    it('無効なURLパラメータの場合も復旧して空の状態を返す', () => {
       Object.defineProperty(window, 'location', {
         value: { search: '?s=invalid!!!' },
         writable: true,
@@ -495,8 +510,11 @@ describe('url-state', () => {
       
       const result = getURLStateFromCurrentURL();
       
-      expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({
+        version: 1,
+        services: [],
+      });
     });
   });
 
