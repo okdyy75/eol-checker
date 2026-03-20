@@ -3,7 +3,7 @@
 import React, { useMemo, useCallback, useEffect, useState } from 'react';
 import { Gantt, Task, ViewMode } from 'gantt-task-react';
 import 'gantt-task-react/dist/index.css';
-import { Service, EOLDataMap } from '../lib/types';
+import { Service, Technology, EOLDataMap } from '../lib/types';
 import { convertToGanttData } from '../lib/gantt-adapter';
 
 // ライフサイクルステージの型定義
@@ -34,6 +34,10 @@ const VIEW_SHIFT_MONTHS = 6;
 interface EOLGanttChartProps {
   services: Service[];
   eolData: EOLDataMap;
+}
+
+function isConfiguredTechnology(technology: Technology): boolean {
+  return technology.name.trim() !== '' && technology.currentVersion.trim() !== '';
 }
 
 /**
@@ -145,8 +149,16 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
   // サービスごとにガントチャートデータを生成
   const serviceCharts = useMemo(() => {
     return services.map(service => {
-      const data = convertToGanttData([service], eolData);
+      const configuredTechnologies = service.technologies.filter((technology) =>
+        isConfiguredTechnology(technology)
+      );
 
+      const filteredService = {
+        ...service,
+        technologies: configuredTechnologies,
+      };
+
+      const data = convertToGanttData([filteredService], eolData);
       // gantt-task-react用のTask配列に変換
       const tasks: TaskWithSegments[] = data.tasks.map((task, index) => {
         let details;
@@ -189,7 +201,7 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
         serviceName: service.name,
         tasks,
       };
-    }).filter(chart => chart.tasks.length > 0); // タスクが空のサービスは除外
+    });
   }, [services, eolData, getStageColor]);
 
   useEffect(() => {
@@ -212,7 +224,7 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
   }, [serviceCharts]);
 
   // データが空の場合の表示
-  if (!services.length || !serviceCharts.length || serviceCharts.every(chart => !chart.tasks.length)) {
+  if (!services.length) {
     return (
       <div className="eol-gantt-empty">
         <div className="empty-message">
@@ -286,84 +298,89 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
               </button>
 
               {isOpen && (
-                <div className="eol-gantt-wrapper m-4">
-                  <Gantt
-                    tasks={chart.tasks}
-                    viewMode={ViewMode.Month}
-                    viewDate={initialViewDate}
-                    preStepsCount={VIEW_SHIFT_MONTHS}
-                    locale="ja"
-                    listCellWidth={listCellWidth}
-                    rowHeight={50}
-                    barCornerRadius={0}
-                    handleWidth={8}
-                    fontFamily="Arial, sans-serif"
-                    fontSize="14"
-                    barFill={60}
-                    barProgressColor="#a3a3a3"
-                    barProgressSelectedColor="#8884d8"
-                    barBackgroundColor="#b8c2cc"
-                    barBackgroundSelectedColor="#aeb8c2"
-                    projectProgressColor="#7db46c"
-                    projectProgressSelectedColor="#59a14f"
-                    projectBackgroundColor="#fac465"
-                    projectBackgroundSelectedColor="#f7bb53"
-                    milestoneBackgroundColor="#f1c453"
-                    milestoneBackgroundSelectedColor="#f29e4c"
-                    rtl={false}
-                    todayColor="rgba(239, 68, 68, 0.2)"
-                    TaskListHeader={TaskListHeaderComponent}
-                    TaskListTable={TaskListTableComponent}
-                    TooltipContent={({ task }) => {
-                      let details;
-                      let eolUndefined = false;
-                      try {
-                        const taskData = chart.tasks.find(t => t.id === task.id);
-                        if (taskData && taskData.name) {
-                          const match = taskData.name.match(/^(.+?)\s+(.+?)(\s+★)?$/);
-                          if (match) {
-                            // TaskWithSegmentsからeolUndefinedを取得
-                            eolUndefined = (taskData as TaskWithSegments).eolUndefined || false;
+                chart.tasks.length === 0 ? (
+                  <div className="m-4 text-gray-500 font-medium text-center">
+                    技術名とバージョンを入力すると表示されます
+                  </div>
+                ) : (
+                  <div className="eol-gantt-wrapper m-4">
+                    <Gantt
+                      tasks={chart.tasks}
+                      viewMode={ViewMode.Month}
+                      viewDate={initialViewDate}
+                      preStepsCount={VIEW_SHIFT_MONTHS}
+                      locale="ja"
+                      listCellWidth={listCellWidth}
+                      rowHeight={50}
+                      barCornerRadius={0}
+                      handleWidth={8}
+                      fontFamily="Arial, sans-serif"
+                      fontSize="14"
+                      barFill={60}
+                      barProgressColor="#a3a3a3"
+                      barProgressSelectedColor="#8884d8"
+                      barBackgroundColor="#b8c2cc"
+                      barBackgroundSelectedColor="#aeb8c2"
+                      projectProgressColor="#7db46c"
+                      projectProgressSelectedColor="#59a14f"
+                      projectBackgroundColor="#fac465"
+                      projectBackgroundSelectedColor="#f7bb53"
+                      milestoneBackgroundColor="#f1c453"
+                      milestoneBackgroundSelectedColor="#f29e4c"
+                      rtl={false}
+                      todayColor="rgba(239, 68, 68, 0.2)"
+                      TaskListHeader={TaskListHeaderComponent}
+                      TaskListTable={TaskListTableComponent}
+                      TooltipContent={({ task }) => {
+                        let details;
+                        let eolUndefined = false;
+                        try {
+                          const taskData = chart.tasks.find(t => t.id === task.id);
+                          if (taskData && taskData.name) {
+                            const match = taskData.name.match(/^(.+?)\s+(.+?)(\s+★)?$/);
+                            if (match) {
+                              eolUndefined = (taskData as TaskWithSegments).eolUndefined || false;
 
-                            details = {
-                              techName: match[1],
-                              version: match[2],
-                              isCurrentVersion: !!match[3],
-                              releaseDate: task.start.toLocaleDateString('ja-JP'),
-                              eolDate: task.end.toLocaleDateString('ja-JP'),
-                            };
+                              details = {
+                                techName: match[1],
+                                version: match[2],
+                                isCurrentVersion: !!match[3],
+                                releaseDate: task.start.toLocaleDateString('ja-JP'),
+                                eolDate: task.end.toLocaleDateString('ja-JP'),
+                              };
+                            }
                           }
+                        } catch {
+                          details = null;
                         }
-                      } catch {
-                        details = null;
-                      }
 
-                      if (!details) return null;
+                        if (!details) return null;
 
-                      return (
-                        <div style={{
-                          padding: '8px 12px',
-                          backgroundColor: 'white',
-                          border: '1px solid #e5e7eb',
-                          borderRadius: '6px',
-                          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                          fontSize: '14px',
-                        }}>
-                          <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
-                            {details.techName} {details.version}
-                            {details.isCurrentVersion && <span style={{ color: '#f59e0b', marginLeft: '4px' }}>★ 現在使用中</span>}
+                        return (
+                          <div style={{
+                            padding: '8px 12px',
+                            backgroundColor: 'white',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '6px',
+                            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                            fontSize: '14px',
+                          }}>
+                            <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
+                              {details.techName} {details.version}
+                              {details.isCurrentVersion && <span style={{ color: '#f59e0b', marginLeft: '4px' }}>★ 現在使用中</span>}
+                            </div>
+                            <div style={{ color: '#6b7280', fontSize: '12px' }}>
+                              リリース: {details.releaseDate}
+                            </div>
+                            <div style={{ color: '#6b7280', fontSize: '12px' }}>
+                              EOL: {eolUndefined ? '未定' : details.eolDate}
+                            </div>
                           </div>
-                          <div style={{ color: '#6b7280', fontSize: '12px' }}>
-                            リリース: {details.releaseDate}
-                          </div>
-                          <div style={{ color: '#6b7280', fontSize: '12px' }}>
-                            EOL: {eolUndefined ? '未定' : details.eolDate}
-                          </div>
-                        </div>
-                      );
-                    }}
-                  />
-                </div>
+                        );
+                      }}
+                    />
+                  </div>
+                )
               )}
             </div>
           );
