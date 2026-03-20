@@ -5,6 +5,7 @@ import { Gantt, Task, ViewMode } from 'gantt-task-react';
 import 'gantt-task-react/dist/index.css';
 import { Service, Technology, EOLDataMap } from '../lib/types';
 import { convertToGanttData } from '../lib/gantt-adapter';
+import { getVersionsForTechnology } from '../lib/eol-data';
 
 // ライフサイクルステージの型定義
 // - current: 最新バージョン（緑 #22c55e）
@@ -38,6 +39,19 @@ interface EOLGanttChartProps {
 
 function isConfiguredTechnology(technology: Technology): boolean {
   return technology.name.trim() !== '' && technology.currentVersion.trim() !== '';
+}
+
+function hasServiceName(service: Service): boolean {
+  return service.name.trim() !== '';
+}
+
+function isValidTechnology(technology: Technology, eolData: EOLDataMap): boolean {
+  if (!isConfiguredTechnology(technology)) {
+    return false;
+  }
+
+  const availableVersions = getVersionsForTechnology(eolData, technology.name.trim());
+  return availableVersions.includes(technology.currentVersion.trim());
 }
 
 /**
@@ -148,14 +162,16 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
 
   // サービスごとにガントチャートデータを生成
   const serviceCharts = useMemo(() => {
-    return services.map(service => {
-      const configuredTechnologies = service.technologies.filter((technology) =>
-        isConfiguredTechnology(technology)
+    return services
+      .filter(hasServiceName)
+      .map(service => {
+      const validTechnologies = service.technologies.filter((technology) =>
+        isValidTechnology(technology, eolData)
       );
 
       const filteredService = {
         ...service,
-        technologies: configuredTechnologies,
+        technologies: validTechnologies,
       };
 
       const data = convertToGanttData([filteredService], eolData);
@@ -198,7 +214,7 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
 
       return {
         serviceId: service.id,
-        serviceName: service.name,
+        serviceName: service.name.trim(),
         tasks,
       };
     });
@@ -224,7 +240,7 @@ export default function EOLGanttChart({ services, eolData }: EOLGanttChartProps)
   }, [serviceCharts]);
 
   // データが空の場合の表示
-  if (!services.length) {
+  if (!serviceCharts.length) {
     return (
       <div className="eol-gantt-empty">
         <div className="empty-message">

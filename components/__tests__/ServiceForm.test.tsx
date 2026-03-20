@@ -60,6 +60,58 @@ describe('ServiceForm', () => {
     expect(screen.getByText('テストサービス')).toBeInTheDocument();
   });
 
+  it('サービス名が空の場合は（未設定）で表示する', () => {
+    const services: Service[] = [
+      {
+        id: 'service-1',
+        name: '   ',
+        technologies: []
+      }
+    ];
+
+    renderServiceForm(services);
+
+    expect(screen.getByText('（未設定）')).toBeInTheDocument();
+  });
+
+  it('サービス名が空の場合はバリデーションエラーを表示する', () => {
+    const services: Service[] = [
+      {
+        id: 'service-1',
+        name: '',
+        technologies: []
+      }
+    ];
+
+    renderServiceForm(services);
+
+    const serviceNameInput = screen.getByPlaceholderText(/例: マイクロサービスA/);
+    fireEvent.blur(serviceNameInput);
+
+    expect(screen.getByText('サービス名を入力してください')).toBeInTheDocument();
+  });
+
+  it('サービス名入力中はエラーを表示しない', async () => {
+    const services: Service[] = [
+      {
+        id: 'service-1',
+        name: '',
+        technologies: []
+      }
+    ];
+
+    renderServiceForm(services);
+
+    const serviceNameInput = screen.getByPlaceholderText(/例: マイクロサービスA/);
+
+    await act(async () => {
+      fireEvent.focus(serviceNameInput);
+      fireEvent.change(serviceNameInput, { target: { value: ' ' } });
+    });
+
+    expect(screen.queryByText('サービス名を入力してください')).not.toBeInTheDocument();
+  });
+
   it('サービス名を入力するとリアルタイムで保存される', async () => {
     const services: Service[] = [
       {

@@ -2,8 +2,12 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Technology, EOLDataMap } from '@/lib/types';
-import { validateTechnologyName, validateVersion } from '@/lib/validation';
+import { validateTechnologyName } from '@/lib/validation';
 import { getVersionsForTechnology } from '@/lib/eol-data';
+
+function isKnownTechnology(value: string, availableTechnologies: string[]): boolean {
+  return availableTechnologies.some((tech) => tech === value);
+}
 
 interface TechnologyInputProps {
   technology: Technology;
@@ -22,28 +26,32 @@ export default function TechnologyInput({
 }: TechnologyInputProps) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([]);
-  const [techNameError, setTechNameError] = useState<string | null>(null);
-  const [versionError, setVersionError] = useState<string | null>(null);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
-  
-  // バージョンsuggest用のstate
-  const [showVersionSuggestions, setShowVersionSuggestions] = useState(false);
-  const [filteredVersionSuggestions, setFilteredVersionSuggestions] = useState<string[]>([]);
-  const [selectedVersionSuggestionIndex, setSelectedVersionSuggestionIndex] = useState(-1);
+  const [hasTechNameBlurred, setHasTechNameBlurred] = useState(false);
   const [availableVersions, setAvailableVersions] = useState<string[]>([]);
   
   const techNameInputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
-  const versionInputRef = useRef<HTMLInputElement>(null);
-  const versionSuggestionsRef = useRef<HTMLDivElement>(null);
+
+  const validateTechnology = (value: string): string | null => {
+    const baseError = validateTechnologyName(value);
+    if (baseError) {
+      return baseError;
+    }
+
+    if (!isKnownTechnology(value.trim(), availableTechnologies)) {
+      return '正しい技術を入力してください';
+    }
+
+    return null;
+  };
+
+  const techNameError = validateTechnology(technology.name);
 
   // 技術名の変更処理
   const handleTechNameChange = (value: string) => {
     onChange({ ...technology, name: value });
-    
-    // バリデーション
-    setTechNameError(validateTechnologyName(value));
-    
+
     // オートコンプリートのフィルタリング
     if (value.trim()) {
       const filtered = availableTechnologies.filter(tech =>
@@ -61,44 +69,13 @@ export default function TechnologyInput({
   // バージョンの変更処理
   const handleVersionChange = (value: string) => {
     onChange({ ...technology, currentVersion: value });
-    
-    // バリデーション
-    setVersionError(validateVersion(value));
-    
-    // バージョンsuggestのフィルタリング
-    if (value.trim() && availableVersions.length > 0) {
-      const filtered = availableVersions.filter(version =>
-        version.toLowerCase().includes(value.toLowerCase())
-      );
-      setFilteredVersionSuggestions(filtered);
-      setShowVersionSuggestions(filtered.length > 0);
-      setSelectedVersionSuggestionIndex(-1);
-    } else {
-      setShowVersionSuggestions(false);
-      setFilteredVersionSuggestions([]);
-    }
-  };
-
-  // バージョン候補選択処理
-  const handleVersionSuggestionClick = (suggestion: string) => {
-    onChange({ ...technology, currentVersion: suggestion });
-    setVersionError(null);
-    setShowVersionSuggestions(false);
-    setFilteredVersionSuggestions([]);
   };
 
   // 候補選択処理
   const handleSuggestionClick = (suggestion: string) => {
     onChange({ ...technology, name: suggestion });
-    setTechNameError(null);
     setShowSuggestions(false);
     setFilteredSuggestions([]);
-    
-    // 技術名が選択されたら、利用可能なバージョンリストを更新
-    if (eolData) {
-      const versions = getVersionsForTechnology(eolData, suggestion);
-      setAvailableVersions(versions);
-    }
   };
 
   // キーボード操作処理
@@ -131,36 +108,6 @@ export default function TechnologyInput({
     }
   };
 
-  // バージョン入力用キーボード操作処理
-  const handleVersionKeyDown = (e: React.KeyboardEvent) => {
-    if (!showVersionSuggestions || filteredVersionSuggestions.length === 0) return;
-
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setSelectedVersionSuggestionIndex(prev =>
-          prev < filteredVersionSuggestions.length - 1 ? prev + 1 : 0
-        );
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setSelectedVersionSuggestionIndex(prev =>
-          prev > 0 ? prev - 1 : filteredVersionSuggestions.length - 1
-        );
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (selectedVersionSuggestionIndex >= 0) {
-          handleVersionSuggestionClick(filteredVersionSuggestions[selectedVersionSuggestionIndex]);
-        }
-        break;
-      case 'Escape':
-        setShowVersionSuggestions(false);
-        setSelectedVersionSuggestionIndex(-1);
-        break;
-    }
-  };
-
   // 外部クリックで候補を閉じる
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -173,16 +120,6 @@ export default function TechnologyInput({
         setShowSuggestions(false);
         setSelectedSuggestionIndex(-1);
       }
-      
-      if (
-        versionInputRef.current &&
-        !versionInputRef.current.contains(event.target as Node) &&
-        versionSuggestionsRef.current &&
-        !versionSuggestionsRef.current.contains(event.target as Node)
-      ) {
-        setShowVersionSuggestions(false);
-        setSelectedVersionSuggestionIndex(-1);
-      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -191,15 +128,29 @@ export default function TechnologyInput({
   
   // 技術名が変更された時にバージョンリストを更新
   useEffect(() => {
-    if (eolData && technology.name) {
+    if (!eolData) {
+      setAvailableVersions([]);
+      return;
+    }
+
+    if (technology.name) {
       const versions = getVersionsForTechnology(eolData, technology.name);
       setAvailableVersions(versions);
+
+      const latestVersion = versions[0] || '';
+      if (technology.currentVersion !== latestVersion && !versions.includes(technology.currentVersion)) {
+        onChange({ ...technology, currentVersion: latestVersion });
+      }
     } else {
       setAvailableVersions([]);
-    }
-  }, [technology.name, eolData]);
 
-  const hasErrors = techNameError || versionError;
+      if (technology.currentVersion !== '') {
+        onChange({ ...technology, currentVersion: '' });
+      }
+    }
+  }, [technology, eolData, onChange]);
+
+  const hasErrors = hasTechNameBlurred && techNameError;
 
   return (
     <div className="space-y-1">
@@ -217,14 +168,16 @@ export default function TechnologyInput({
             placeholder="例: python, nodejs, mysql"
             value={technology.name}
             onChange={(e) => handleTechNameChange(e.target.value)}
-            onKeyDown={handleKeyDown}
             onFocus={() => {
+              setHasTechNameBlurred(false);
               if (technology.name.trim() && filteredSuggestions.length > 0) {
                 setShowSuggestions(true);
               }
             }}
+            onBlur={() => setHasTechNameBlurred(true)}
+            onKeyDown={handleKeyDown}
             className={`w-full px-3 py-2 bg-gray-50 border rounded text-sm sm:text-base transition-colors ${
-              techNameError ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:bg-white focus:bg-white'
+              hasTechNameBlurred && techNameError ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:bg-white focus:bg-white'
             } focus:outline-none focus:ring-2 focus:ring-blue-500`}
           />
           
@@ -251,50 +204,24 @@ export default function TechnologyInput({
           )}
         </div>
 
-        {/* バージョン入力フィールド（オートコンプリート付き） */}
-        <div className="w-full sm:w-32 relative">
+        {/* バージョン選択フィールド */}
+        <div className="w-full sm:w-32">
           <label className="block text-xs font-medium text-gray-600 mb-1 sm:hidden">
             バージョン
           </label>
-          <input
-            ref={versionInputRef}
-            type="text"
-            placeholder="例: 3.9, 18"
+          <select
             value={technology.currentVersion}
             onChange={(e) => handleVersionChange(e.target.value)}
-            onKeyDown={handleVersionKeyDown}
-            onFocus={() => {
-              if (availableVersions.length > 0) {
-                setFilteredVersionSuggestions(availableVersions);
-                setShowVersionSuggestions(true);
-              }
-            }}
-            className={`w-full px-3 py-2 bg-gray-50 border rounded text-sm sm:text-base transition-colors ${
-              versionError ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:bg-white focus:bg-white'
-            } focus:outline-none focus:ring-2 focus:ring-blue-500`}
-          />
-          
-          {/* バージョンオートコンプリート候補 */}
-          {showVersionSuggestions && filteredVersionSuggestions.length > 0 && (
-            <div
-              ref={versionSuggestionsRef}
-              className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto"
-            >
-              {filteredVersionSuggestions.map((suggestion, index) => (
-                <div
-                  key={suggestion}
-                  onClick={() => handleVersionSuggestionClick(suggestion)}
-                  className={`px-3 py-2 cursor-pointer text-sm ${
-                    index === selectedVersionSuggestionIndex
-                      ? 'bg-blue-100 text-blue-900'
-                      : 'hover:bg-gray-100'
-                  }`}
-                >
-                  {suggestion}
-                </div>
-              ))}
-            </div>
-          )}
+            disabled={availableVersions.length === 0}
+            className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded text-sm sm:text-base transition-colors hover:bg-white focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+          >
+            {availableVersions.length === 0 && <option value=""></option>}
+            {availableVersions.map((version) => (
+              <option key={version} value={version}>
+                {version}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* 削除ボタン */}
@@ -311,20 +238,12 @@ export default function TechnologyInput({
       </div>
 
       {/* バリデーションエラー表示 */}
-      {(techNameError || versionError) && (
+      {hasTechNameBlurred && techNameError && (
         <div className="text-sm text-red-600 space-y-1">
-          {techNameError && (
-            <div className="flex items-center gap-1">
-              <span className="text-red-500">⚠</span>
-              <span>技術名: {techNameError}</span>
-            </div>
-          )}
-          {versionError && (
-            <div className="flex items-center gap-1">
-              <span className="text-red-500">⚠</span>
-              <span>バージョン: {versionError}</span>
-            </div>
-          )}
+          <div className="flex items-center gap-1">
+            <span className="text-red-500">⚠</span>
+            <span>{techNameError}</span>
+          </div>
         </div>
       )}
     </div>

@@ -38,8 +38,8 @@ describe('validation', () => {
     });
 
     it('空文字列の場合はエラーメッセージを返す', () => {
-      expect(validateTechnologyName('')).toBe('技術名を入力してください');
-      expect(validateTechnologyName('   ')).toBe('技術名を入力してください');
+      expect(validateTechnologyName('')).toBe('正しい技術を入力してください');
+      expect(validateTechnologyName('   ')).toBe('正しい技術を入力してください');
     });
 
     it('50文字を超える場合はエラーメッセージを返す', () => {
@@ -63,8 +63,8 @@ describe('validation', () => {
     });
 
     it('空文字列の場合はエラーメッセージを返す', () => {
-      expect(validateVersion('')).toBe('バージョンを入力してください');
-      expect(validateVersion('   ')).toBe('バージョンを入力してください');
+      expect(validateVersion('')).toBe('正しいバージョンを入力してください');
+      expect(validateVersion('   ')).toBe('正しいバージョンを入力してください');
     });
 
     it('20文字を超える場合はエラーメッセージを返す', () => {
@@ -150,7 +150,7 @@ describe('validation', () => {
       const result = validateForm([serviceWithInvalidTech]);
       
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('サービス1 技術1: 技術名を入力してください');
+      expect(result.errors).toContain('サービス1 技術1: 正しい技術を入力してください');
     });
 
     it('無効なバージョンの場合はエラーを返す', () => {
@@ -168,7 +168,7 @@ describe('validation', () => {
       const result = validateForm([serviceWithInvalidVersion]);
       
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain('サービス1 技術1: バージョンを入力してください');
+      expect(result.errors).toContain('サービス1 技術1: 正しいバージョンを入力してください');
     });
 
     it('複数のエラーがある場合はすべて返す', () => {
@@ -196,8 +196,8 @@ describe('validation', () => {
       expect(result.isValid).toBe(false);
       expect(result.errors.length).toBeGreaterThanOrEqual(3);
       expect(result.errors).toContain('サービス1: サービス名を入力してください');
-      expect(result.errors).toContain('サービス1 技術1: 技術名を入力してください');
-      expect(result.errors).toContain('サービス1 技術1: バージョンを入力してください');
+      expect(result.errors).toContain('サービス1 技術1: 正しい技術を入力してください');
+      expect(result.errors).toContain('サービス1 技術1: 正しいバージョンを入力してください');
     });
 
     it('複数のサービスと技術がある場合も正しく検証する', () => {

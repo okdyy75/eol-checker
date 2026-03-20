@@ -33,7 +33,7 @@ export function validateServiceName(name: string): string | null {
  */
 export function validateTechnologyName(name: string): string | null {
   if (isEmpty(name)) {
-    return '技術名を入力してください';
+    return '正しい技術を入力してください';
   }
   
   if (name.trim().length > MAX_TECH_NAME_LENGTH) {
@@ -48,7 +48,7 @@ export function validateTechnologyName(name: string): string | null {
  */
 export function validateVersion(version: string): string | null {
   if (isEmpty(version)) {
-    return 'バージョンを入力してください';
+    return '正しいバージョンを入力してください';
   }
   
   if (version.trim().length > MAX_VERSION_LENGTH) {

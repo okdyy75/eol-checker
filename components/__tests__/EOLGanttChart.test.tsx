@@ -131,6 +131,60 @@ describe('EOLGanttChart', () => {
     expect(screen.getByText('技術名とバージョンを入力すると表示されます')).toBeInTheDocument();
   });
 
+  test('サービス名が空の場合はセクション自体を表示しない', () => {
+    const unnamedServices: Service[] = [
+      {
+        id: '1',
+        name: ' ',
+        technologies: [
+          {
+            id: '1',
+            name: 'unknown-tech',
+            currentVersion: '1.0',
+          },
+        ],
+      },
+    ];
+
+    render(<EOLGanttChart services={unnamedServices} eolData={mockEOLData} />);
+
+    expect(screen.getByText('表示可能なEOLデータがありません')).toBeInTheDocument();
+    expect(screen.queryByText('（未設定）')).not.toBeInTheDocument();
+  });
+
+  test('不正な技術は除外し、正しい技術だけ表示する', () => {
+    const mixedServices: Service[] = [
+      {
+        id: '1',
+        name: 'Test Service',
+        technologies: [
+          {
+            id: '1',
+            name: 'python',
+            currentVersion: '3.9',
+          },
+          {
+            id: '2',
+            name: 'unknown-tech',
+            currentVersion: '1.0',
+          },
+          {
+            id: '3',
+            name: 'nodejs',
+            currentVersion: '999',
+          },
+        ],
+      },
+    ];
+
+    render(<EOLGanttChart services={mixedServices} eolData={mockEOLData} />);
+
+    const tasks = screen.getByTestId('gantt-tasks').textContent || '';
+    expect(tasks).toContain('python 3.9');
+    expect(tasks).not.toContain('unknown-tech');
+    expect(tasks).not.toContain('nodejs 999');
+  });
+
   test('ガントチャートに正しいプロパティが渡される', () => {
     render(<EOLGanttChart services={mockServices} eolData={mockEOLData} />);
     
