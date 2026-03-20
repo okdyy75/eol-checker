@@ -6,6 +6,15 @@ on:
       - main
     paths-ignore:
       - '**.md'
+  schedule:
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+    inputs:
+      fetch_eol_data:
+        description: 'Run fetch-eol-data before deploy'
+        type: boolean
+        required: false
+        default: false
 
 permissions:
   contents: read
@@ -35,7 +44,14 @@ jobs:
       # 依存関係のインストール
       - name: Install dependencies
         run: npm ci
-      
+
+      # スケジュール実行時、または手動実行で選択された場合のみEOLデータを更新
+      - name: Fetch EOL data
+        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.fetch_eol_data)
+        run: npm run fetch-eol-data
+        env:
+          NODE_ENV: production
+
       # Next.jsビルドキャッシュの復元
       - name: Restore Next.js build cache
         uses: actions/cache@v4
