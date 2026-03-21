@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import Script from 'next/script';
 import './globals.css';
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 export const metadata: Metadata = {
   title: 'EOL Timeline Viewer',
   description: 'End of Life情報を視覚的に確認できる静的Webサイト。開発中のサービスで使用している言語やフレームワークのEOL情報をガントチャート形式で表示し、URLを共有することで誰でも確認できます。',
@@ -9,8 +11,8 @@ export const metadata: Metadata = {
   authors: [{ name: 'EOL Timeline Viewer' }],
   robots: 'index, follow',
   icons: {
-    icon: [{ url: '/icon.svg', type: 'image/svg+xml' }],
-    shortcut: ['/icon.svg'],
+    icon: [{ url: `${basePath}/icon.svg`, type: 'image/svg+xml' }],
+    shortcut: [`${basePath}/icon.svg`],
   },
   openGraph: {
     title: 'EOL Timeline Viewer',
